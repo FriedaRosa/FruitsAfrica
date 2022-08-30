@@ -20,10 +20,10 @@ rm(list = ls())
 
 # =======================
 
-setwd("~/LinuxBackup/FruitSizeEvo_Project/OUwie_results_alltrees_MCC_final/")
 # 100 trees results:
-Afr_emp <- read.table("merged_data_afr_avgl.txt", header=T)
-Afr_BBM <- read.table("merged_data_afr_BBM.txt", header=T)
+Afr_emp <- read.table("merged_data_AVGL.txt", header=T)
+Afr_BBM <- read.table("merged_data_BM.txt", header=T)
+
 # MCC results:
 MCC <- read.table("merged_MCC_all.txt", header=T)
 
