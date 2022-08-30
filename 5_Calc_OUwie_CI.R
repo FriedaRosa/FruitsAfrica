@@ -7,20 +7,13 @@ dd_master_sep$df
 
 library(rstatix); library(dplyr); library(Rmisc); library(tidyr); library(qwraps2)
 
-dd_master_sep %>% group_by(df, regime) %>% get_summary_stats(type="full")
+dd_master_sep %>% group_by(df) %>% get_summary_stats(type="full")
 
 afr_emp <-dd_master_sep %>% filter(df == "observed", regime == "Africa")
-md_emp <-dd_master_sep %>% filter(df == "observed", regime == "moist_dry")
 afr_sim <-dd_master_sep %>% filter(df == "simulated", regime == "Africa")
-md_sim <-dd_master_sep %>% filter(df == "simulated", regime == "moist_dry")
-
-
 
 CI(afr_emp$v_logTheta, ci=0.95)
 CI(afr_sim$v_logTheta, ci=0.95)
-CI(md_emp$v_logTheta, ci=0.95)
-CI(md_sim$v_logTheta, ci=0.95)
-
 
 library(tidyverse)
 
