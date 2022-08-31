@@ -322,7 +322,7 @@ colnames(tdwg_final2)[colnames(tdwg_final2)      # Rename two variable names
 # reduce to needed columns:
 
 tdwg_final3 <- tdwg_final2 %>% filter_at(vars(LEVEL_3_CO, max95FL_palms, log_max95FL_palms_BBMmean, curr_max95BodySize, mean_abs_BSchange), any_vars(!is.na(.))) %>%
-  select(LEVEL_3_CO, LAT, LONG, accAfrica, max95FL_palms, log_max95FL_palms_BBMmean,log_medianFL_palms_BBM_MCC, curr_max95BodySize, mean_abs_BSchange, presNat_max95BodySize, max95_abs_BSchange, "MAT", "TempSeas", "AnnualPrec", "PrecSeas", "CH_Mean", "CH_PercCover", accRealm ) %>% distinct(.)
+  select(LEVEL_3_CO, LAT, LONG, accAfrica, max95FL_palms, log_max95FL_palms_BBMmean,log_medianFL_palms_BBM_MCC, curr_max95BodySize, mean_abs_BSchange, presNat_max95BodySize, mean_perc_BSchange, "MAT", "TempSeas", "AnnualPrec", "PrecSeas", "CH_Mean", "CH_PercCover", accRealm ) %>% distinct(.)
 
 
 
