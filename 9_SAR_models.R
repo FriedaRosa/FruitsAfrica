@@ -4,7 +4,7 @@ palms <- palms %>% filter_at(vars(max95FL_palms, LAT, LONG), any_vars(!is.na(.))
 
 ## Data handling  ========================
 palms$LEVEL_3_CO <- as.factor(palms$LEVEL_3_CO)
-palms$accAfrica <- factor(palms$accAfrica, levels = c("1", "0"))
+palms$accAfrica <- factor(palms$accAfrica, levels = c("0", "1"))
 
 # Set negative values (i.e., positive body mass changes) to zero before log-transformation:
 palms$mean_abs_BSchange[palms$mean_abs_BSchange < 0] <- 0
@@ -138,34 +138,34 @@ summary(sem_error_nb1_w_palms)
 # Call:spatialreg::errorsarlm(formula = lm_full, listw = nb1_w_palms,     na.action = na.omit, zero.policy = TRUE)
 # 
 # Residuals:
-#   Min       1Q   Median       3Q      Max 
-# -1.50978 -0.35263  0.06609  0.33329  1.59287 
+#   Min         1Q     Median         3Q        Max 
+# -1.2840133 -0.3941595  0.0022698  0.3840778  1.9209325 
 # 
 # Type: error 
 # Coefficients: (asymptotic standard errors) 
 # Estimate Std. Error z value  Pr(>|z|)
-# (Intercept)                     0.502184   0.355509  1.4126 0.1577794 ns
-# sqrt_change                     0.184543   0.195313  0.9449 0.3447336 ns
-# factor(accAfrica)0             -0.729377   0.367509 -1.9847 0.0471832 ns
-# currBS                          0.301297   0.187984  1.6028 0.1089841 ns
-# MAT                             0.014258   0.084798  0.1681 0.8664742 ns
-# TempSeas                       -0.418863   0.095106 -4.4042 1.062e-05 ***
-# AnnualPrec                      0.273698   0.077098  3.5500 0.0003852 ***
-# PrecSeas                        0.146560   0.103256  1.4194 0.1557863 ns 
-# CH_Mean                        -0.090946   0.087749 -1.0364 0.2999948 ns
-# sqrt_change:factor(accAfrica)0  0.030071   0.219183  0.1372 0.8908753 ns
-# factor(accAfrica)0:currBS      -0.082459   0.212652 -0.3878 0.6981914 ns
+# (Intercept)                    -0.305376   0.184440 -1.6557 0.0977844 ns
+# sqrt_change                     0.183851   0.083014  2.2147 0.0267807 *
+# factor(accAfrica)1              0.947119   0.330528  2.8655 0.0041639 ***
+# currBS                          0.210074   0.093763  2.2405 0.0250599 *
+# MAT                             0.042841   0.079544  0.5386 0.5901742 *
+# TempSeas                       -0.371012   0.095407 -3.8887 0.0001008 ***
+# AnnualPrec                      0.222792   0.075845  2.9375 0.0033090 ***
+# PrecSeas                        0.078787   0.099232  0.7940 0.4272188 ns
+# CH_Mean                        -0.054377   0.083053 -0.6547 0.5126429 ns
+# sqrt_change:factor(accAfrica)1  0.013189   0.204327  0.0645 0.9485333 ns
+# factor(accAfrica)1:currBS       0.107865   0.206229  0.5230 0.6009492 ns
 # 
-# Lambda: 0.75943, LR test value: 14.322, p-value: 0.00015405
-# Asymptotic standard error: 0.096201
-# z-value: 7.8942, p-value: 2.8866e-15
-# Wald statistic: 62.319, p-value: 2.8866e-15
+# Lambda: 0.69316, LR test value: 10.681, p-value: 0.0010825
+# Asymptotic standard error: 0.11979
+# z-value: 5.7866, p-value: 7.1821e-09
+# Wald statistic: 33.485, p-value: 7.1821e-09
 # 
-# Log likelihood: -98.1776 for error model
-# ML residual variance (sigma squared): 0.29583, (sigma: 0.5439)
+# Log likelihood: -94.29962 for error model
+# ML residual variance (sigma squared): 0.28004, (sigma: 0.52919)
 # Number of observations: 118 
 # Number of parameters estimated: 13 
-# AIC: 222.36, (AIC for lm: 234.68)
+# AIC: 214.6, (AIC for lm: 223.28)
 
 #Testing for spatial structure in the residuals of the spatial model
 
