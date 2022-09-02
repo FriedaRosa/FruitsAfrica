@@ -74,19 +74,15 @@ tdwg_final3$accRealm[tdwg_final3$LEVEL_3_CO == "MDG"] <- "Madagascar"
 tdwg_final3$LEVEL_3_CO <- as.factor(tdwg_final3$LEVEL_3_CO)
 #tdwg_final3$accAfrica <- factor(tdwg_final3$accAfrica, levels = c("1", "0"))
 
-plotNormalDensity(tdwg_final3$mean_abs_BSchange)
-
 # Set negative values (i.e., positive body mass changes) to zero before log-transformation:
 tdwg_final_0 <- tdwg_final3
 tdwg_final_0$mean_abs_BSchange[tdwg_final_0$mean_abs_BSchange < 0] <- 0
 tdwg_final_0$mean_perc_BSchange[tdwg_final_0$mean_perc_BSchange < 0] <- 0
 
 tdwg_final_0$mean_abs_BSchange <- tdwg_final_0$mean_abs_BSchange/1000
-plotNormalDensity(tdwg_final_0$mean_abs_BSchange, main = "untransformed")
 
 # sqrt transform
 tdwg_final_0$sqrt_change <- sqrt(tdwg_final_0$mean_abs_BSchange)
-plotNormalDensity(tdwg_final_0$sqrt_change, main = "sqrt transformed")
 
 # log1p transform
 x <- log(tdwg_final_0$mean_abs_BSchange+1)
@@ -144,8 +140,9 @@ FL_violin <- ggpubr::ggviolin(dd, x = "accAfrica", y = "sqrtFL", fill="accAfrica
                          l = 12)) # Left margin) #change font size of legend title
 
 pdf(file=paste0(fig.dir, "Anova_emp.pdf"), width = 6, height = 4)
-FL_violin <- FL_violin+ labs(subtitle = get_test_label(stat.test, detailed = T, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -7, hjust=1)) +coord_fixed(ratio=0.4) #  Add p-value
-FL_violin <- FL_violin + labs(subtitle = "y = 0.56 - 0.24x, p = 0.036")+theme(legend.position="none", plot.subtitle = element_text(vjust = -7, hjust=1)) +coord_fixed(ratio=0.4) #  Add p-value
+#FL_violin <- FL_violin+ labs(subtitle = get_test_label(stat.test, detailed = T, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -7, hjust=1)) +coord_fixed(ratio=0.4) #  Add p-value
+FL_violin <- FL_violin + labs(subtitle = expression(paste("Africa:"~beta~"= 0.24, se = 0.11, p = 0.036"))) + theme(legend.position="none", plot.subtitle = element_text(vjust = -7, hjust=0.1)) 
+FL_violin
 dev.off()
 
 # Fruit size mapped  ========================
@@ -215,7 +212,8 @@ sim_violin <- ggpubr::ggviolin(dd, x = "accAfrica", y = "sqrt_BBM_mean", fill="a
                          l = 12)) # Left margin) #change font size of legend title   
 #  Add p-value
 pdf(file=paste0(fig.dir, "Anova_sim.pdf"), width = 6, height = 4)
-sim_violin <- sim_violin + labs(subtitle = get_test_label(stat.test, detailed = TRUE, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.25)) +coord_fixed(ratio=3.25)   #  Add p-value
+#sim_violin <- sim_violin + labs(subtitle = get_test_label(stat.test, detailed = TRUE, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.25)) +coord_fixed(ratio=3.25)   #  Add p-value
+sim_violin <- sim_violin + labs(subtitle = expression(paste("Africa:"~beta~"= -0.04, se = 0.11, p = n.s."))) + theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015)) +coord_fixed(ratio=3.25)   #  Add p-value
 sim_violin
 dev.off()
 
@@ -512,8 +510,8 @@ p1a <- ggplot(tdwg_final_0, aes(sqrt_change, sqrt(max95FL_palms))) +
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 4.4, p.digits = 1, size = 13/(14/5)) +
-  stat_regline_equation(label.x = 3, label.y = 4.2, size = 13/(14/5))+
+  labs(subtitle = expression(paste(beta~"= 0.08, se = 0.08, p = n.s."))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x=expression(sqrt("Mean decrease in  body mass [g]")), color = NULL)
 
 p2a <- ggplot(tdwg_final_0, aes(sqrt(curr_max95BodySize), sqrt(max95FL_palms))) +
@@ -532,8 +530,8 @@ p2a <- ggplot(tdwg_final_0, aes(sqrt(curr_max95BodySize), sqrt(max95FL_palms))) 
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
   theme(legend.position="none")+
-  stat_cor(label.x = 3, label.y = 4.4, p.digits = 1, size = 13/(14/5)) +
-  stat_regline_equation(label.x = 3, label.y = 4.2, size = 13/(14/5))+
+  labs(subtitle = expression(paste(beta~"= 0.28, se = 0.1, p = 0.01"))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Current frugivore body mass [g]")), color = NULL)
 
 ## do not use in main text: 
@@ -552,8 +550,8 @@ p3a <- ggplot(tdwg_final_0, aes((MAT)^2, sqrt(max95FL_palms))) +
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 4.4, p.digits = 1, size = 13/(14/5)) +
-  stat_regline_equation(label.x = 3, label.y = 4.2, size = 13/(14/5))+
+  labs(subtitle = expression(paste(beta~"= 0.02, se = 0.12, p = n.s."))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression("Mean annual temperature"^2), color = NULL)
 
 p4a <-ggplot(tdwg_final_0, aes(sqrt(TempSeas), sqrt(max95FL_palms))) +
@@ -572,8 +570,8 @@ p4a <-ggplot(tdwg_final_0, aes(sqrt(TempSeas), sqrt(max95FL_palms))) +
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 4.4, p.digits = 1, size = 13/(14/5)) +
-  stat_regline_equation(label.x = 3, label.y = 4.2, size = 13/(14/5))+
+  labs(subtitle = expression(paste(beta~"= -0.32, se = 0.1, p = 0.002"))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Temperature seasonality")), color = NULL)
 
 p5a <- ggplot(tdwg_final_0, aes(sqrt(AnnualPrec), sqrt(max95FL_palms))) +
@@ -591,8 +589,8 @@ p5a <- ggplot(tdwg_final_0, aes(sqrt(AnnualPrec), sqrt(max95FL_palms))) +
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 4.4, p.digits = 1, size = 13/(14/5)) +
-  stat_regline_equation(label.x = 3, label.y = 4.2, size = 13/(14/5))+
+  labs(subtitle = expression(paste(beta~"= 0.23, se = 0.11, p = 0.04"))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Annual precipitation")), color = NULL)
 
 p6a <- ggplot(tdwg_final_0, aes(sqrt(PrecSeas), sqrt(max95FL_palms))) +
@@ -611,8 +609,8 @@ p6a <- ggplot(tdwg_final_0, aes(sqrt(PrecSeas), sqrt(max95FL_palms))) +
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 4.4, p.digits = 1, size = 13/(14/5)) +
-  stat_regline_equation(label.x = 3, label.y = 4.2, size = 13/(14/5))+
+  labs(subtitle = expression(paste(beta~"= 0.17, se = 0.14, p = n.s."))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Precipitation seasonality")), color = NULL)
 
 p7a <- ggplot(tdwg_final_0, aes(sqrt(CH_Mean), sqrt(max95FL_palms))) +
@@ -630,14 +628,14 @@ p7a <- ggplot(tdwg_final_0, aes(sqrt(CH_Mean), sqrt(max95FL_palms))) +
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 1.2, label.y = 4.4, p.digits = 1, size = 13/(14/5)) +
-  stat_regline_equation(label.x = 1.2, label.y = 4.2, size = 13/(14/5))+
+  labs(subtitle = expression(paste(beta~"= -0.15, se = 0.12, p = n.s."))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Canopy height")), color = NULL)
 
 
 pdf(file=paste0(fig.dir, "allPlotsLMsFormulasObserved.pdf"), height = 12, width = 12.75 )
 legend <- get_legend(p0ax + theme(legend.box.margin = margin(0, -10, 0, 0)))
-x <- cowplot::plot_grid(FL_violin, p1a, p2a, p3a, p4a, p5a, p6a, p7a, legend, hjust = -1, align = "h", ncol= 3,axis = c("lr"))
+x <- cowplot::plot_grid(FL_violin + coord_fixed(ratio=0.2), p1a, p2a, p3a, p4a, p5a, p6a, p7a, legend, hjust = -1, align = "hv", ncol= 3,axis = c("lb"))
 x +  theme(plot.margin = margin(12, 12, 12, 12))
 dev.off()
 
@@ -696,8 +694,8 @@ p1b <- ggplot(tdwg_final_0, aes(sqrt_change, sqrt(exp(log_max95FL_palms_BBMmean)
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 2.4) +
-  stat_regline_equation(label.x = 3, label.y = 2.32)+
+  labs(subtitle = expression(paste(beta~"= 0.30, se = 0.08, p = 0.0004"))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x=expression(sqrt("Mean decrease in frugivore body mass [g]")), color = "Distribution")
 
 p2b <- ggplot(tdwg_final_0, aes(sqrt(curr_max95BodySize), sqrt(exp(log_max95FL_palms_BBMmean)))) +
@@ -716,15 +714,15 @@ p2b <- ggplot(tdwg_final_0, aes(sqrt(curr_max95BodySize), sqrt(exp(log_max95FL_p
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
   theme(legend.position="none")+
-  stat_cor(label.x = 3, label.y = 2.4) +
-  stat_regline_equation(label.x = 3, label.y = 2.32)+
+  labs(subtitle = expression(paste(beta~"= 0.11, se = 0.1, p = n.s."))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Current frugivore body mass [g]")), color = "Distribution")
 
 
 ## do not use in main text: 
 p3b <- ggplot(tdwg_final_0, aes((MAT)^2, sqrt(exp(log_max95FL_palms_BBMmean)))) +
   geom_point(aes(color=accAfrica), show.legend = F) +
-  stat_smooth(method = lm, col="#636363")+
+  #stat_smooth(method = lm, col="#636363")+
   scale_color_manual(values=my_colors, labels=c('Elsewhere', 'Africa')) +
   theme_classic()+
   theme(axis.text=element_text(size=13, color = "black"), #change font size of axis text
@@ -737,8 +735,8 @@ p3b <- ggplot(tdwg_final_0, aes((MAT)^2, sqrt(exp(log_max95FL_palms_BBMmean)))) 
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 2.4) +
-  stat_regline_equation(label.x = 3, label.y = 2.32)+
+  labs(subtitle = expression(paste(beta~"= 0.04, se = 0.12, p = n.s."))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression("Mean annual temperature"^2), color = "Distribution")
 
 
@@ -758,8 +756,8 @@ p4b <-ggplot(tdwg_final_0, aes(sqrt(TempSeas), sqrt(exp(log_max95FL_palms_BBMmea
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 2.4) +
-  stat_regline_equation(label.x = 3, label.y = 2.32)+
+  labs(subtitle = expression(paste(beta~"= -0.25, se = 0.1, p = 0.01"))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Temperature seasonality")), color = "Distribution")
 
 
@@ -779,13 +777,13 @@ p5b <- ggplot(tdwg_final_0, aes(sqrt(AnnualPrec), sqrt(exp(log_max95FL_palms_BBM
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 2.4) +
-  stat_regline_equation(label.x = 3, label.y = 2.32)+
+  labs(subtitle = expression(paste(beta~"= 0.29, se = 0.11, p = 0.009"))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Annual precipitation")), color = "Distribution")
 
 p6b <- ggplot(tdwg_final_0, aes(sqrt(PrecSeas), sqrt(exp(log_max95FL_palms_BBMmean)))) +
   geom_point(aes(color=accAfrica), show.legend = F) +
-  stat_smooth(method = lm, col="#636363")+
+  #stat_smooth(method = lm, col="#636363")+
   scale_color_manual(values=my_colors, labels=c('Elsewhere', 'Africa')) +
   theme(legend.position="none")+
   theme_classic()+
@@ -799,13 +797,13 @@ p6b <- ggplot(tdwg_final_0, aes(sqrt(PrecSeas), sqrt(exp(log_max95FL_palms_BBMme
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 3, label.y = 2.4) +
-  stat_regline_equation(label.x = 3, label.y = 2.32)+
+  labs(subtitle = expression(paste(beta~"= -0.02, se = 0.14, p = n.s."))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Precipitation seasonality")), color = "Distribution")
 
 p7b <- ggplot(tdwg_final_0, aes(sqrt(CH_Mean), sqrt(exp(log_max95FL_palms_BBMmean)))) +
   geom_point(aes(color=accAfrica), show.legend = F) +
-  stat_smooth(method = lm, col="#636363")+
+  #stat_smooth(method = lm, col="#636363")+
   scale_color_manual(values=my_colors, labels=c('Elsewhere', 'Africa')) +
   theme_classic()+
   theme(axis.text=element_text(size=13, color = "black"), #change font size of axis text
@@ -818,8 +816,8 @@ p7b <- ggplot(tdwg_final_0, aes(sqrt(CH_Mean), sqrt(exp(log_max95FL_palms_BBMmea
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  stat_cor(label.x = 1.2, label.y = 2.4) +
-  stat_regline_equation(label.x = 1.2, label.y = 2.32)+
+  labs(subtitle = expression(paste(beta~"= -0.05, se = 0.12, p = n.s."))) + 
+  theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Canopy height")), color = "Distribution")
 
 pdf(file=paste0(fig.dir, "allPlotsLMsFormulasSimulated.pdf"), height = 12, width = 12.75 )
@@ -833,12 +831,12 @@ dev.off()
 
 # Save relevant subplots for maintext:
 pdf(file=paste0(fig.dir, "finalPlotLMsFormulas.pdf"), width = 16, height = 5)
-x<- cowplot::plot_grid(FL_violin, p2a, p1a, legend, nrow=1, labels=c('a)','b)', 'c)'), align = "v",axis = c("lr"))
+x<- cowplot::plot_grid(FL_violin, p2a, p1a, legend, nrow=1, labels=c('a)','b)', 'c)'), align = "hv",axis = c("lbt"))
 x +  theme(plot.margin = margin(12, 12, 12, 12))
 dev.off()
 
 pdf(file=paste0(fig.dir, "finalPlotLMsFormulasSimulated.pdf"), width = 16, height = 5)
-x <- cowplot::plot_grid(sim_violin, p2b, p1b, legend, nrow=1, labels=c('a)','b)','c)'), align="v",axis = c("lr"))
+x <- cowplot::plot_grid(sim_violin, p2b, p1b, legend, nrow=1, labels=c('a)','b)','c)'), align="hv",axis = c("lbt"))
 x +  theme(plot.margin = margin(12, 12, 12, 12))
 dev.off()
 
