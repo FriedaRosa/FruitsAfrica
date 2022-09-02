@@ -41,6 +41,7 @@ cleanCuts <- function(x){
 ## Data import ========================
 tdwg_final3 <- read.csv(file.path(res.dir, "tdwg_final.csv"), header=T, sep=",")
 str(tdwg_final3)
+tdwg_final3$accAfrica <- factor(tdwg_final3$accAfrica, levels = c("0", "1"))
 
 
 ### World map shape file ============
@@ -71,7 +72,7 @@ map_theme <- theme(panel.background = element_blank(),
 ## Data handling  ========================
 tdwg_final3$accRealm[tdwg_final3$LEVEL_3_CO == "MDG"] <- "Madagascar"
 tdwg_final3$LEVEL_3_CO <- as.factor(tdwg_final3$LEVEL_3_CO)
-tdwg_final3$accAfrica <- factor(tdwg_final3$accAfrica, levels = c("1", "0"))
+#tdwg_final3$accAfrica <- factor(tdwg_final3$accAfrica, levels = c("1", "0"))
 
 plotNormalDensity(tdwg_final3$mean_abs_BSchange)
 
@@ -100,7 +101,7 @@ plotNormalDensity(x, main = "log1p-transformed")
 dd <- tdwg_final_0
 
 dd <- dd[complete.cases(dd$max95FL_palms),]
-dd$accAfrica <- as.factor(dd$accAfrica)
+dd$accAfrica <- factor(dd$accAfrica)
 dd$accRealm <- as.factor(dd$accRealm)
 
 dd$sqrtFL <- sqrt(dd$max95FL_palms)
@@ -144,7 +145,7 @@ FL_violin <- ggpubr::ggviolin(dd, x = "accAfrica", y = "sqrtFL", fill="accAfrica
 
 pdf(file=paste0(fig.dir, "Anova_emp.pdf"), width = 6, height = 4)
 FL_violin <- FL_violin+ labs(subtitle = get_test_label(stat.test, detailed = T, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -7, hjust=1)) +coord_fixed(ratio=0.4) #  Add p-value
-FL_violin
+FL_violin <- FL_violin + labs(subtitle = "y = 0.56 - 0.24x, p = 0.036")+theme(legend.position="none", plot.subtitle = element_text(vjust = -7, hjust=1)) +coord_fixed(ratio=0.4) #  Add p-value
 dev.off()
 
 # Fruit size mapped  ========================
@@ -290,7 +291,7 @@ Bschange_violin + coord_fixed(ratio=0.05)
 dev.off()
 
 
-# mapped =================
+# Mean body size decreases mapped =================
 maxBSchange_zCuts <- quantile(dd$mean_abs_BSchange, probs = seq(0,1,length.out = 6), na.rm = TRUE)
 dd$maxBSchange_categ <-  cut(dd$mean_abs_BSchange, breaks = maxBSchange_zCuts, include.lowest = T, ordered_result = T)
 maxBSchange_zmidpt <- vector()
@@ -319,7 +320,7 @@ ggsave(file.path(fig.dir, "3_palms_meanBSchange_map.pdf"), map_BSchange_abs, wid
 
 
 
-### Percentage change ===============
+### Percentage body size change ===============
 
 dd <- dd[complete.cases(dd$mean_perc_BSchange),]
 
@@ -358,13 +359,12 @@ perc_Bschange_violin <- percBSchange + labs(subtitle = get_test_label(stat.test,
 perc_Bschange_violin
 dev.off()
 
-# MAP:
+# Percentage body size change map  =================
 maxBSchange_zCuts <- quantile(dd$mean_perc_BSchange, probs = seq(0,1,length.out = 6), na.rm = TRUE)
 dd$maxBSchange_categ <-  cut(dd$mean_perc_BSchange, breaks = maxBSchange_zCuts, include.lowest = T, ordered_result = T)
 maxBSchange_zmidpt <- vector()
 for(i in 1:(length(maxBSchange_zCuts)-1)){ maxBSchange_zmidpt[i] <- (maxBSchange_zCuts[i] + maxBSchange_zCuts[i+1])/2 }
 levels(dd$maxBSchange_categ) <- cleanCuts(levels(dd$maxBSchange_categ))
-
 
 perc_decr_BS_map <- ggplot() +
   geom_polygon(aes(y = lat, x = long, group = group), data = shp.df2) +
@@ -383,12 +383,17 @@ perc_decr_BS_map <- ggplot() +
   scale_y_continuous(expand = c(0,0)) +
   scale_size_manual(values = seq(1,3, length.out = 5)) +
   scale_fill_manual(values = brewer.pal(9,"RdBu")[c(9,7,6,3,1)])
+
 perc_decr_BS_map 
-
-
-map_BSchange_perc<-perc_Bschange_violin+ coord_fixed(ratio=0.015)+ perc_decr_BS_map 
-
+map_BSchange_perc <- perc_Bschange_violin + coord_fixed(ratio=0.015) + perc_decr_BS_map 
 ggsave(file.path(fig.dir, "3_palms_mean_percBSchange_map.pdf"), map_BSchange_perc, width = 14, height = 10, device = "pdf")
+
+
+
+
+
+
+
 
 ## Some Test plots (not for manuscript) ========================
 my_colors <- setNames(c("blue", "#bdbdbd"), c("1", "0"))
@@ -860,7 +865,7 @@ cols <- c("#636363", "blue")
 
 # 1) Full model: (w/o interactions)
 
-lm_full1 <- lm(normalized(sqrt(max95FL_palms)) ~ 
+lm_full1 <- lm(normalized(sqrt(max95FL_palms)) ~ factor(accAfrica)+ 
                  normalized((sqrt_change)) + 
                  normalized(sqrt(curr_max95BodySize)) + 
                  normalized(I(MAT^2)) +
@@ -868,12 +873,12 @@ lm_full1 <- lm(normalized(sqrt(max95FL_palms)) ~
                  normalized(sqrt(AnnualPrec)) +
                  normalized(sqrt(PrecSeas)) +
                  normalized(sqrt(CH_Mean)), 
-                      data = full_df)
+                      data = full_df, na.action = na.exclude)
 summary(lm_full1)
 plot(normalized(sqrt(max95FL_palms)) ~ 
        normalized((sqrt_change)), data = full_df)
 
-plot_model(lm_full1, col= cols, type= "est", show.intercept = F, show.values = T, show.p = T, title = "Maximum fruit length \n(Palms) w/o interactions", axis.labels = c("Canopy height", "PrecSeas", "Annual Prec", "TempSeas", "MAT", "body mass", "body mass decrease"))
+plot_model(lm_full1, col= cols, type= "est", show.intercept = F, show.values = T, show.p = T, title = "Maximum fruit length \n(Palms) w/o interactions", axis.labels = c("Canopy height", "PrecSeas", "Annual Prec", "TempSeas", "MAT", "body mass", "body mass decrease", "Distribution in Africa"))
 
 # 2) Full model: (with interactions)
 
@@ -885,13 +890,13 @@ lm_full2 <- lm(normalized(sqrt(max95FL_palms)) ~
                  normalized(sqrt(AnnualPrec)) +
                  normalized(sqrt(PrecSeas)) +
                  normalized(sqrt(CH_Mean)), 
-              data = full_df)
+              data = full_df, na.action = na.exclude)
 summary(lm_full2)
 
 # models have different DFs, therefore cannot be compared using R-squared
 # here I use the performance package:
 
-plot(compare_performance(lm_full1, lm_full1, lm_full2, rank = TRUE, metrics = "common"))
+compare_performance(lm_full1, lm_full1, lm_full2, rank = TRUE, metrics = "common")
 # model 2 has a better fit (with interactions) 
 
 
@@ -938,7 +943,7 @@ dev.off()
 
 # 2b) Simulated full model with interactions:
 
-lm_full1b <- lm(normalized(sqrt(exp(log_max95FL_palms_BBMmean))) ~ 
+lm_full1b <- lm(normalized(sqrt(exp(log_max95FL_palms_BBMmean))) ~ factor(accAfrica) +
                  normalized((sqrt_change)) + 
                  normalized(sqrt(curr_max95BodySize)) + 
                  normalized(I(MAT^2)) +
@@ -946,12 +951,12 @@ lm_full1b <- lm(normalized(sqrt(exp(log_max95FL_palms_BBMmean))) ~
                  normalized(sqrt(AnnualPrec)) +
                  normalized(sqrt(PrecSeas)) +
                  normalized(sqrt(CH_Mean)), 
-               data = full_df)
+               data = full_df, na.action = na.exclude)
 summary(lm_full1b)
 plot(normalized(sqrt(exp(log_max95FL_palms_BBMmean))) ~ 
        normalized((sqrt_change)), data = full_df)
 
-plot_model(lm_full1b, col= cols, type= "est", show.intercept = F, show.values = T, show.p = T, title = "Maximum fruit length \n(Palms) w/o interactions", axis.labels = c("Canopy height", "PrecSeas", "Annual Prec", "TempSeas", "MAT", "body mass", "body mass decrease"))
+plot_model(lm_full1b, col= cols, type= "est", show.intercept = F, show.values = T, show.p = T, title = "Maximum fruit length \n(Palms) w/o interactions", axis.labels = c("Canopy height", "PrecSeas", "Annual Prec", "TempSeas", "MAT", "body mass", "body mass decrease", "Distribution in Africa"))
 
 
 lm_full2b <- lm(normalized(sqrt(exp(log_max95FL_palms_BBMmean))) ~ 
@@ -962,7 +967,7 @@ lm_full2b <- lm(normalized(sqrt(exp(log_max95FL_palms_BBMmean))) ~
                  normalized(sqrt(AnnualPrec)) +
                  normalized(sqrt(PrecSeas)) +
                  normalized(sqrt(CH_Mean)), 
-               data = full_df)
+               data = full_df, na.action = na.exclude)
 summary(lm_full2b)
 compare_performance(lm_full1b, lm_full2b, rank = TRUE, metrics = "common")
 
