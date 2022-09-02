@@ -81,6 +81,7 @@ R-scripts:
 7) 6_ ANOVA_LinearModels.R:
 	- requires: 
 		- tdwg_final.csv
+		- shapefile: TDWG_level3_Coordinates
 	- Summary of analyses:
 		- Data transformations
 		- ANOVA FL (emp) ~ Africa
@@ -92,14 +93,12 @@ R-scripts:
 		- Linear models comparison: with or without interaction
 		- Africa / elsewhere subset analysis
 		- correlation test for predictors 
-
-8) 7_3palms_maps.R
+		- included world maps with plotted traits
+8) 7_PlotPhyloRegimes
+	- R script for plotted phylogeny with annotated tribes and visualized traits for SI
+8) 9_SAR models
 	- requires:
 		- tdwg_final.csv
-		- shapefile: TDWG_level3_Coordinates
-	- Steps:
-		- Body mass change ANOVA and map
-		- Fruit length maps (empirical, simulated)
 
 9) Sensitivity_Extinctions:
 	- Folder with scripts for sensitivity analysis where 10% of species were randomly removed
