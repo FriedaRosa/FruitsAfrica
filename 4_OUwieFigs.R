@@ -14,7 +14,7 @@
 
 # Libraries  =======================
 library(tidyr); library(dplyr); library(scales); library(viridis); library(viridisLite); library(ggplot2)
-
+setwd(dir = "Data/OUwie/out/")
 # =======================
 rm(list = ls())
 
@@ -124,19 +124,6 @@ multi_theta <- all_best %>% filter(model %in% c("OUM", "OUMV", "OUMVA", "OUMA"))
 multi_sigma <- all_best %>% filter(model %in% c("OUMV", "OUMVA"))
 
 
-
-## Fig 0: Akaike weights per model (best fit) ===============
-ggplot(all_best, aes(y=w, x=factor(model)))+
-  geom_boxplot(aes(fill=data), outlier.color = "white", width=1, position = "dodge2")+ 
-  theme_classic()+
-  scale_fill_viridis(discrete=T)+
-  scale_x_discrete(name ="OUwie Models", breaks=c("BM1", "BMS", "OU1", "OUM", "OUMA", "OUMV", "OUMVA"))+
-  scale_y_continuous(name = "Akaike weight")+
-  geom_point(data=MCC_best, aes(y=w, x=factor(model), color=data, shape=data), cex=10, position = position_dodge(width= 1))+
-  labs(fill = "Data", color="MCC", shape="MCC", title = "Akaike weights per model and regime")+  
-  facet_grid(regime~.)
-
-
 ## Fig 1: proportion of selected models ===============
 dd_Afr <- Afr_merged  
 group.colors <- c( OUM = "#cdcdcd", OUMV = "#cdcdcd", OUMVA = "#cdcdcd")
@@ -165,7 +152,7 @@ sum_tab <- all_merged_wide %>% filter(delta==0) %>% group_by(tree, data, model) 
   theta1 = mean(theta_1),
   aicw = mean(w)
 )
-write.csv(sum_tab, "../OnlyAfrica/OUwie_SumTab_AfrOnly.csv")
+write.csv(sum_tab, "../../../Results/OUwie_SumTab_AfrOnly.csv")
 
 # =============================================
 
@@ -174,20 +161,21 @@ p2_1<-dd_Afr %>%
   ggplot(aes( x=factor(model)))+
   geom_bar(width=.7, position="dodge2")+
   scale_x_discrete(limits = c("BM1", "BMS", "OU1", "OUM", "OUMV", "OUMA", "OUMVA"), drop = FALSE)+
-  theme(title=element_text(size=15),
-        axis.text.x = element_text(angle = 45, hjust = 1, size=15), 
-        axis.title.x = element_text(size=15),
-        axis.text.y = element_text(size=15),
+  theme(text= element_text(color="black"),
+        title=element_text(size=15, color = "black"),
+        axis.text=element_text(size=11.5, color = "black"),
+        axis.text.x = element_text(angle = 45, hjust = 1, size=15, color="black"), 
+        axis.title.x = element_text(size=15, color="black"),
+        axis.text.y = element_text(size=15, color="black"),
         axis.title.y = element_text(size=15),
         legend.title = element_text(size=15),
         legend.text = element_text(size=10))+ 
-  geom_text(aes(label = ifelse(..count.. > 0, paste0("n = ", ..count..), "")),  stat = "count", nudge_y = 2)+
+  geom_text(aes(label = ifelse(..count.. > 0, paste0("n = ", ..count..), "")),  stat = "count", nudge_y = 3)+
   ylim(0, 100)+
   theme_classic()+
   labs(x = "Evolutionary Trait Models", 
        y = "Proportion of selected models",
-       title ="a) Megafaunal community stability", 
-       subtitle = expression(bold(Observed)~n[OUM]~'= 82,'~n[OUMV]~'= 16,'~n[OUMVA]~'= 2'~~'\r\n'))
+       title ="a) Observed fruit sizes ")
 p2_1
 
 p2_2<-dd_Afr %>%
@@ -202,13 +190,12 @@ p2_2<-dd_Afr %>%
         axis.title.y = element_text(size=15),
         legend.title = element_text(size=15),
         legend.text = element_text(size=10))+
-  geom_text(aes(label = ifelse(..count.. > 0, paste0("n = ", ..count..), "")),  stat = "count", nudge_y = 2)+
+  geom_text(aes(label = ifelse(..count.. > 0, paste0("n = ", ..count..), "")),  stat = "count", nudge_y = 3)+
   ylim(0, 100)+
   theme_classic()+
   labs(x = "Evolutionary Trait Models", 
        y = "Proportion of selected models",
-       title ="b) Megafaunal community stability", 
-       subtitle = expression(bold(Simulated)~n[OU1]~'= 67,'~n[OUM]~'= 18,'~n[OUMV]~'= 9,'~n[OUMVA]~'= 6'))
+       title ="b) Simulated fruit sizes")
 p2_2
 
 
@@ -226,18 +213,17 @@ afr_multi_theta$g_logTheta <- factor(afr_multi_theta$g_logTheta, levels = c("the
 p3 <- ggplot(data=afr_multi_theta, aes(y = v_logTheta, x = g_logTheta), show.legend=F)+
   geom_point(aes(color=g_logTheta), cex = 2)+
   geom_line(aes(group=id), col="light grey")+
-  scale_x_discrete(name ="Selective Regime", 
+  scale_x_discrete(name =NULL, 
                    labels=c("theta0" = "Elsewhere", "theta_1" = "Africa"))+
   theme_classic()+
   theme(legend.position = "none")+
-  scale_y_continuous(name = "Optimum Fruit size (log cm)")+
+  scale_y_continuous(name = expression(theta~"log(Optimum fruit size) [cm]"))+
   scale_color_manual("Parameters", labels = c("Theta0", "Theta1"), values = group.colors)+
   geom_point(data = afr_multi_theta_MCC, aes(y = v_logTheta, x = g_logTheta), cex =2)+
   geom_line(data= afr_multi_theta_MCC, aes(group = id), col="black")+
-  labs(title ="a)", 
-       subtitle = expression(bold(Observed)~n[OUM]~'= 82,'~n[OUMV]~'= 16,'~n[OUMVA]~'= 2'~~'\r\n'))+
+  labs(subtitle = expression(bold(Observed)~n[OUM]~'= 82,'~n[OUMV]~'= 16,'~n[OUMVA]~'= 2'~~'\r\n'))+
   theme(legend.position="none")+
-  theme(
+  theme( plot.subtitle= element_text(size=9),
     axis.text=element_text(size=13, color = "black"), #change font size of axis text
     axis.title=element_text(size=13), #change font size of axis titles
     plot.title=element_text(size=20),
@@ -257,19 +243,18 @@ afr_multi_theta$g_sigma <- factor(afr_multi_theta$g_sigma, levels = c("X1_sigma.
 p5 <- ggplot(data=afr_multi_sigma, aes(y = v_sigma, x = g_sigma), show.legend=F)+
   geom_point(aes(color=g_sigma), cex = 3)+
   geom_line(aes(group=id), col="light grey")+
-  scale_x_discrete(name ="Selective Regime", 
+  scale_x_discrete(name =NULL, 
                    limits = c("X1_sigma.sq", "sigma0"),
                    labels=c("X1_sigma.sq" = "Africa", "sigma0" = "Elsewhere"))+
   theme_classic()+
   #theme(legend.position = "none")+
-  scale_y_continuous(name = "Evolutionary Rate")+
+  scale_y_continuous(name =expression(sigma^2~"Evolutionary rate"))+
   scale_color_manual("Parameters", labels = c("Africa", "Elsewhere"), values = group.colors)+
   geom_point(data = afr_multi_sigma_MCC, aes(y = v_sigma, x = g_sigma), cex =3)+
   geom_line(data= afr_multi_sigma_MCC, aes(group = id), col="black")+
-  labs(title ="b)", 
-       subtitle = expression(bold(Observed)~n[OUMV]~'= 16,'~n[OUMVA]~'= 2'~~'\r\n'))+
+  labs(subtitle = expression(bold(Observed)~n[OUMV]~'= 16,'~n[OUMVA]~'= 2'~~'\r\n'))+
   theme(legend.position="none")+
-  theme(
+  theme( plot.subtitle= element_text(size=9),
     axis.text=element_text(size=13, color = "black"), #change font size of axis text
     axis.title=element_text(size=13), #change font size of axis titles
     plot.title=element_text(size=20),
