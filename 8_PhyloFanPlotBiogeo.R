@@ -9,7 +9,7 @@ tree <- ladderize(tree2)
 
 data2 <- read.csv("../../Frieda/Overview_simulated_traits.csv")
 data2 <- data2[-1]
-columns <- c("SpecName", "genus", "Americas", "Asia", "Africa", "Madagascar", "Pacific", "accRealm", "accAfrica", "moist0_dry1", "log_BBM_mean")
+columns <- c("SpecName", "accGenus", "PalmTribe", "PalmSubfamily","accAfrica", "AverageFruitLength_cm", "log_BBM_mean")
 
 sim <- data2 %>% dplyr::select(any_of(columns))
 sim <- unique(sim)
