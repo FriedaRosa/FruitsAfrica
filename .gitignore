@@ -1,2 +1,4 @@
 
 *.nex
+*.Rhistory
+Data/OUwie/out/.Rhistory
