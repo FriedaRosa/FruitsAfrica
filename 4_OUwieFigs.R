@@ -14,7 +14,7 @@
 
 # Libraries  =======================
 library(tidyr); library(dplyr); library(scales); library(viridis); library(viridisLite); library(ggplot2)
-setwd(dir = "Data/OUwie/out/")
+setwd(dir = "~/GitHub/FruitsAfrica/Data/OUwie/out/")
 # =======================
 rm(list = ls())
 
@@ -130,15 +130,21 @@ group.colors <- c( OUM = "#cdcdcd", OUMV = "#cdcdcd", OUMVA = "#cdcdcd")
 
 empty_models <-c("BM1", "BMS", "OU1", "OUM", "OUMV", "OUMA", "OUMVA")
 
-aicw <- dd_Afr %>%
+aicw_emp <- dd_Afr %>%
   filter(delta==0 & data == "empirical" & tree == "set_trees") %>% group_by(model) %>%  summarise_at(vars(w), list(mean = mean, sd = sd))
-aicw
-aicw <- dd_Afr %>%
-  filter(delta==0 & data == "simulated" & tree == "set_trees") %>% group_by(model) %>%  summarise_at(vars(w), list(mean = mean, sd = sd))
-aicw
+aicw_emp$mean <- round(aicw_emp$mean,2)
+aicw_emp$y <- c(85, 18, 4)
 
-aicw <- all_merged_wide %>% filter(delta==0 & tree == "MCC") %>% group_by(data, regime, model) %>%  summarise_at(vars(w), list(mean = mean, sd = sd))
-aicw
+
+aicw_sim <- dd_Afr %>%
+  filter(delta==0 & data == "simulated" & tree == "set_trees") %>% group_by(model) %>%  summarise_at(vars(w), list(mean = mean, sd = sd))
+aicw_sim$mean <- round(aicw_sim$mean,2)
+aicw_sim
+aicw_sim$y <- c(69, 20, 12, 8)
+
+aicw_MCC <- all_merged_wide %>% filter(delta==0 & tree == "MCC") %>% group_by(data, regime, model) %>%  summarise_at(vars(w), list(mean = mean, sd = sd))
+aicw_MCC$mean <- round(aicw_MCC$mean,2)
+aicw_MCC
 
 # Make summary table for ouwie: =====================
 
@@ -155,7 +161,7 @@ sum_tab <- all_merged_wide %>% filter(delta==0) %>% group_by(tree, data, model) 
 write.csv(sum_tab, "../../../Results/OUwie_SumTab_AfrOnly.csv")
 
 # =============================================
-
+library("ggrepel")       
 p2_1<-dd_Afr %>%
   filter(delta==0 & data == "empirical") %>%
   ggplot(aes( x=factor(model)))+
@@ -170,7 +176,8 @@ p2_1<-dd_Afr %>%
         axis.title.y = element_text(size=15),
         legend.title = element_text(size=15),
         legend.text = element_text(size=10))+ 
-  geom_text(aes(label = ifelse(..count.. > 0, paste0("n = ", ..count..), "")),  stat = "count", nudge_y = 3)+
+  #geom_text(aes(label = ifelse(..count.. > 0, paste0("n = ", ..count..), "")),  stat = "count", nudge_y = 6)+
+  geom_text(data = aicw_emp, aes(x=model, y=y, label = paste("w =", mean), vjust=0.3)) +  
   ylim(0, 100)+
   theme_classic()+
   labs(x = "Evolutionary Trait Models", 
@@ -190,7 +197,9 @@ p2_2<-dd_Afr %>%
         axis.title.y = element_text(size=15),
         legend.title = element_text(size=15),
         legend.text = element_text(size=10))+
-  geom_text(aes(label = ifelse(..count.. > 0, paste0("n = ", ..count..), "")),  stat = "count", nudge_y = 3)+
+  #geom_text(aes(label = ifelse(..count.. > 0, paste0("n = ", ..count..), "")),  stat = "count", nudge_y = 3)+
+  geom_text(data = aicw_sim, aes(x=model, y=y, label = paste("w =", mean), vjust=0.3)) +  
+  
   ylim(0, 100)+
   theme_classic()+
   labs(x = "Evolutionary Trait Models", 
