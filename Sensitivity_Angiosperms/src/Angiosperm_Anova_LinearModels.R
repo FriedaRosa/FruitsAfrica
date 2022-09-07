@@ -157,7 +157,7 @@ maxFS_p <- ggplot() +
              data =tdwg_maxFS, alpha = 0.9, colour = "black", pch = 21) +
   coord_fixed() +
   map_theme + theme(plot.title = element_blank()) +
-  guides(size="none", fill = guide_legend(title = "Maximum\n(95th percentile)\nfruit width [mm]",
+  guides(size="none", fill = guide_legend(title = "Maximum\n(95th percentile)\nfruit width [cm]",
                                           override.aes = list(size = seq(1,3, length.out = 8)))) +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(expand = c(0,0)) +
