@@ -62,6 +62,17 @@ rownames(tdwg_env2) <- tdwg_env2$LEVEL_3_CO
 
 #fdb_env <- unique(merge(fdb, tdwg_env2, by.x=c("area_code_l3", "continent"), by.y=c("LEVEL_3_CO", "CONTINENT")), all.x=T)
 
+fdb2 <- fdb %>% subset(area_code_l3 %in% mammal_plant_intersect)
+
+length(unique(fdb2$Genus_Species_Accepted)) # 4573 species
+length(unique(fdb2$genus)) #1043
+length(unique(fdb2$family)) # 167 accepted families
+length(unique(fdb2$Family)) # 193 in total 
+
+write.csv(unique(fdb2$Genus_Species_Accepted), file.path(res.dir, "fdb_sp_list_3palms.csv"))
+write.csv(unique(fdb$Genus_Species_Accepted), file.path(res.dir, "fdb_sp_list_allwithFWdata.csv"))
+
+
 # 4. Mammal / Frugivore data ========================	
 
 phylacine_trait <- read.csv(file.path(data.dir, "Phylacine_Trait_data.csv")) ## Phylacine trait = for body masses of mammals
