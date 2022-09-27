@@ -615,7 +615,7 @@ p6a <- ggplot(tdwg_final_0, aes(sqrt(PrecSeas), sqrt(max95FL_palms))) +
 
 p7a <- ggplot(tdwg_final_0, aes(sqrt(CH_Mean), sqrt(max95FL_palms))) +
   geom_point(aes(color=accAfrica), show.legend = F) +
-  #stat_smooth(method = lm, col="#636363")+
+  stat_smooth(method = lm, aes(col = accAfrica))+
   scale_color_manual(values=my_colors, labels=c('Elsewhere', 'Africa')) +
   theme_classic()+
   theme(axis.text=element_text(size=13, color = "black"), #change font size of axis text
@@ -628,7 +628,7 @@ p7a <- ggplot(tdwg_final_0, aes(sqrt(CH_Mean), sqrt(max95FL_palms))) +
                              r = 12,  # Right margin
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
-  labs(subtitle = expression(paste(beta~"= -0.15, se = 0.12, p = n.s."))) + 
+  #labs(subtitle = expression(paste(beta~"= -0.15, se = 0.12, p = n.s."))) + 
   theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
   labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Canopy height")), color = NULL)
 
