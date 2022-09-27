@@ -1,0 +1,447 @@
+---
+title: "Sensitivity Americas / Asia Downsizing"
+output: html_notebook
+---
+
+
+```{r}
+## Directories ========================
+rm(list = ls())
+setwd("~/share/groups/ea/Frieda/Spatial_analyses_May22/Spatial_analyses_RServer/")
+main.dir <- "ProjectAfricaMegafaunaOnly"
+data.dir <- file.path(main.dir, "data")
+res.dir <- file.path(main.dir, "results")
+src.dir <- file.path(main.dir, "src/")
+fig.dir <- file.path(main.dir, "figures/")
+options(stringsAsFactors =FALSE)
+
+## Packages ========================
+library(plyr); library(dplyr); library(reshape2); library(EnvStats);
+library(ggplot2); library(rstatix); library(EnvStats); library(ggpubr)
+library(performance); library(sjPlot)
+
+## Data import ========================
+tdwg_final3 <- read.csv(file.path(res.dir, "tdwg_final.csv"), header=T, sep=",")
+str(tdwg_final3)
+tdwg_final3$accAfrica <- factor(tdwg_final3$accAfrica, levels = c("0", "1"))
+
+tdwg_final3$accAmericas[tdwg_final3$accRealm == "Americas"] <- "1"
+tdwg_final3$accAmericas[tdwg_final3$accRealm != "Americas"] <- "0"
+tdwg_final3$accAmericas <- factor(tdwg_final3$accAmericas, levels = c("0", "1"))
+
+tdwg_final3$accAsia[tdwg_final3$accRealm == "Asia"] <- "1"
+tdwg_final3$accAsia[tdwg_final3$accRealm != "Asia"] <- "0"
+tdwg_final3$accAsia <- factor(tdwg_final3$accAsia, levels = c("0", "1"))
+```
+
+```{r}
+## Data handling  ========================
+tdwg_final3$LEVEL_3_CO <- as.factor(tdwg_final3$LEVEL_3_CO)
+
+# Set negative values (i.e., positive body mass changes) to zero before log-transformation:
+tdwg_final_0 <- tdwg_final3
+tdwg_final_0$mean_abs_BSchange[tdwg_final_0$mean_abs_BSchange < 0] <- 0
+tdwg_final_0$mean_perc_BSchange[tdwg_final_0$mean_perc_BSchange < 0] <- 0
+
+tdwg_final_0$mean_abs_BSchange <- tdwg_final_0$mean_abs_BSchange/1000
+
+# sqrt transform
+tdwg_final_0$sqrt_change <- sqrt(tdwg_final_0$mean_abs_BSchange)
+
+```
+
+
+```{r}
+## Data Preparations: 
+
+dd <- tdwg_final_0
+
+dd <- dd[complete.cases(dd$max95FL_palms),]
+dd$accAfrica <- factor(dd$accAfrica)
+dd$accRealm <- as.factor(dd$accRealm)
+dd$accAmericas <- as.factor(dd$accAmericas)
+dd$accAsia <- as.factor(dd$accAsia)
+
+dd$sqrtFL <- sqrt(dd$max95FL_palms)
+dd$sqrt_BBM_mean <- sqrt(exp(dd$log_max95FL_palms_BBMmean))
+dd$sqrt_change <- sqrt(dd$mean_abs_BSchange)
+```
+
+
+
+# T-Tests:
+
+# Fruit Size differences Americas / Elsewhere
+## (Observed)
+```{r}
+### 1.1a Empirical ==============
+
+stat.test <- dd %>% wilcox_test(sqrtFL ~ accAmericas)
+stat.test # p < 0.0001
+dd %>%  wilcox_effsize(sqrtFL ~ accAmericas) # moderate
+dd %>%dunn_test(sqrtFL ~ accAmericas, detailed = T)
+
+my_colors <- setNames(c("#bdbdbd", "blue"), c("0", "1"))
+dd$accAmericas <- factor(dd$accAmericas, levels = c("1", "0"))
+
+FL_violin <- ggpubr::ggviolin(dd, x = "accAmericas", y = "sqrtFL", fill="accAmericas", color ="#636363", show.legend=F, trim = T) +
+  scale_fill_manual(values=my_colors, labels=c('Elswhere', 'Americas')) +
+  scale_color_manual(values=my_colors, labels=c('Elswhere', 'Americas')) +
+  stat_summary(fun="mean", color="white", shape=20) +
+  #scale_y_sqrt()+
+  scale_x_discrete(labels = c(
+    "1" = "Americas",
+    "0" = "Elsewhere"))+
+  labs(
+    #title = "c) Observed Fruit length [cm] (Palms)", 
+    y=expression(sqrt("max 95-percentile fruit length [cm]")), x=NULL)+
+  stat_n_text(y.pos = 0.5) + 
+  theme(legend.position="none")+
+  theme_classic()+
+  ylim(0, 5)+ theme(
+    axis.text=element_text(size=13, color = "black"), #change font size of axis text
+    axis.title=element_text(size=11.5), #change font size of axis titles
+    plot.title=element_text(size=20),
+    text = element_text(size = 13), #change font size of plot title
+    legend.text=element_text(size=20), #change font size of legend text
+    legend.title=element_text(size=20),
+    plot.margin = margin(t = 12,  # Top margin
+                         r = 12,  # Right margin
+                         b = 12,  # Bottom margin
+                         l = 12)) # Left margin) #change font size of legend title
+
+#pdf(file=paste0(fig.dir, "Anova_emp.pdf"), width = 6, height = 4)
+#FL_violin <- FL_violin+ labs(subtitle = get_test_label(stat.test, detailed = T, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -7, hjust=1)) +coord_fixed(ratio=0.4) #  Add p-value
+#FL_violin <- FL_violin + labs(subtitle = expression(paste("Africa:"~beta~"= 0.24, se = 0.11, p = 0.036"))) + theme(legend.position="none", plot.subtitle = element_text(vjust = -7, hjust=0.1)) 
+FL_violin
+#dev.off()
+```
+# (Simulated)
+```{r}
+
+stat.test <- dd %>% wilcox_test(sqrt_BBM_mean ~ accAmericas)
+stat.test # n.s.
+dd %>%  wilcox_effsize(sqrt_BBM_mean ~ accAmericas) # moderate
+dd %>%dunn_test(sqrt_BBM_mean ~ accAmericas, detailed = T)
+
+
+sim_violin <- ggpubr::ggviolin(dd, x = "accAmericas", y = "sqrt_BBM_mean", fill="accAmericas", color ="#636363", show.legend=F, trim = T) +
+  scale_fill_manual(values=my_colors, labels=c('Elswhere', 'Americas')) +
+  scale_color_manual(values=my_colors, labels=c('Elswhere', 'Americas')) +
+  stat_summary(fun="mean", color="white", shape=20) +
+  scale_x_discrete(labels = c(
+    "1" = "Americas",
+    "0" = "Elsewhere"))+
+  labs(
+    #title = "c) Observed Fruit length [cm] (Palms)", 
+    y=expression(sqrt("max 95-percentile fruit length [cm]")), x=NULL)+
+  stat_n_text(y.pos = 1.35) + 
+  theme(legend.position="none")+
+  theme_classic()+
+  theme(
+    axis.text=element_text(size=13, color = "black"), #change font size of axis text
+    axis.title=element_text(size=11.5), #change font size of axis titles
+    plot.title=element_text(size=20),
+    text = element_text(size = 13), #change font size of plot title
+    legend.text=element_text(size=20), #change font size of legend text
+    legend.title=element_text(size=20),
+    plot.margin = margin(t = 12,  # Top margin
+                         r = 12,  # Right margin
+                         b = 20,  # Bottom margin
+                         l = 12)) # Left margin) #change font size of legend title   
+#  Add p-value
+#pdf(file=paste0(fig.dir, "Anova_sim.pdf"), width = 6, height = 4)
+#sim_violin <- sim_violin + labs(subtitle = get_test_label(stat.test, detailed = TRUE, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.25)) +coord_fixed(ratio=3.25)   #  Add p-value
+#sim_violin <- sim_violin + labs(subtitle = expression(paste("Americas:"~beta~"= -0.04, se = 0.11, p = n.s."))) + theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015)) +coord_fixed(ratio=3.25)   #  Add p-value
+sim_violin
+#dev.off()
+```
+# Bs change Americas/Elsewhere
+## Absolute
+```{r}
+dd <- dd[complete.cases(dd$sqrt_change),]
+
+stat.test <- dd %>% wilcox_test(sqrt_change ~ accAmericas, detailed=T)
+stat.test
+
+dd %>%  wilcox_effsize(sqrt_change ~ accAmericas, detailed = T) # moderate
+
+dd %>%dunn_test(sqrt_change ~ accAmericas, detailed = T)
+
+
+Bschange_violin <- ggpubr::ggviolin(dd, x = "accAmericas", y = "sqrt_change", fill="accAmericas", color ="#636363", show.legend=F, trim =T) +
+  scale_fill_manual(values=my_colors, labels=c('Elswhere', 'Americas')) +
+  scale_color_manual(values=my_colors, labels=c('Elswhere', 'Americas')) +
+  stat_summary(fun="mean", color="white", shape=20) +
+  scale_x_discrete(labels = c(
+    "1" = "Americas",
+    "0" = "Elsewhere"))+
+  labs(y=expression(sqrt("Mean decrease in frugivore body size [kg]")), x=NULL)+
+  stat_n_text() + 
+  theme(legend.position="none")+
+  theme_classic()+
+  theme(
+    axis.text=element_text(size=13, color = "black"), 
+    axis.title=element_text(size=11.5), 
+    plot.title=element_text(size=20),
+    text = element_text(size = 13), 
+    legend.text=element_text(size=20), 
+    legend.title=element_text(size=20),
+    plot.margin = margin(t = 12,  
+                         r = 12,  
+                         b = 12,  
+                         l = 12))  
+#  Add p-value
+#pdf(file=paste0(fig.dir, "Anova_absBSchange_binary.pdf"), width = 6, height = 4)
+Bschange_violin <- Bschange_violin + labs(subtitle = get_test_label(stat.test, detailed = TRUE, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.15))  #  Add p-value
+Bschange_violin + coord_fixed(ratio=0.05)
+#dev.off()
+
+```
+## Percentage:
+```{r}
+### Percentage body size change ===============
+
+dd <- dd[complete.cases(dd$mean_perc_BSchange),]
+
+stat.test <- dd %>% wilcox_test(mean_perc_BSchange ~ accAmericas, detailed=T)
+stat.test # p < 0.0001
+dd %>%  wilcox_effsize(mean_perc_BSchange ~ accAmericas) # 
+dd %>%dunn_test(mean_perc_BSchange ~ accAmericas, detailed = T)
+
+percBSchange <- ggpubr::ggviolin(dd, x = "accAmericas", y = "mean_perc_BSchange", fill="accAmericas", color ="#636363", show.legend=F, trim = T) +
+  scale_fill_manual(values=my_colors, labels=c('Elswhere', 'Americas')) +
+  scale_color_manual(values=my_colors, labels=c('Elswhere', 'Americas')) +
+  stat_summary(fun="mean", color="white", shape=20) +
+  scale_x_discrete(labels = c(
+    "1" = "Americas",
+    "0" = "Elsewhere"))+
+  labs(
+    #title = "c) Observed Fruit length [cm] (Palms)", 
+    y="Decrease in mammalian frugivore body size [%]", x=NULL)+
+  stat_n_text(y.pos = -5) + 
+  theme(legend.position="none")+
+  theme_classic()+
+  ylim(-5, 105)+ 
+  theme(
+    axis.text=element_text(size=13, color = "black"), #change font size of axis text
+    axis.title=element_text(size=11.5), #change font size of axis titles
+    plot.title=element_text(size=20),
+    text = element_text(size = 13), #change font size of plot title
+    legend.text=element_text(size=20), #change font size of legend text
+    legend.title=element_text(size=20),
+    plot.margin = margin(t = 12,  # Top margin
+                         r = 12,  # Right margin
+                         b = 20,  # Bottom margin
+                         l = 12)) # Left margin) #change font size of legend title   
+#  Add p-value
+#pdf(file=paste0(fig.dir, "Anova_percBSchange_binary.pdf"), width = 6, height = 4)
+perc_Bschange_violin <- percBSchange + labs(subtitle = get_test_label(stat.test, detailed = TRUE, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=.2)) #  Add p-value
+perc_Bschange_violin
+#dev.off()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### ASIA :::
+
+
+# Bs change Asia/Elsewhere
+## Absolute
+```{r}
+dd <- dd[complete.cases(dd$sqrt_change),]
+
+stat.test <- dd %>% wilcox_test(sqrt_change ~ accAsia, detailed=T)
+stat.test
+
+dd %>%  wilcox_effsize(sqrt_change ~ accAsia, detailed = T) # moderate
+
+dd %>%dunn_test(sqrt_change ~ accAsia, detailed = T)
+
+
+Bschange_violin <- ggpubr::ggviolin(dd, x = "accAsia", y = "sqrt_change", fill="accAsia", color ="#636363", show.legend=F, trim =T) +
+  scale_fill_manual(values=my_colors, labels=c('Elswhere', 'Asia')) +
+  scale_color_manual(values=my_colors, labels=c('Elswhere', 'Asia')) +
+  stat_summary(fun="mean", color="white", shape=20) +
+  scale_x_discrete(labels = c(
+    "1" = "Asia",
+    "0" = "Elsewhere"))+
+  labs(y=expression(sqrt("Mean decrease in frugivore body size [kg]")), x=NULL)+
+  stat_n_text() + 
+  theme(legend.position="none")+
+  theme_classic()+
+  theme(
+    axis.text=element_text(size=13, color = "black"), 
+    axis.title=element_text(size=11.5), 
+    plot.title=element_text(size=20),
+    text = element_text(size = 13), 
+    legend.text=element_text(size=20), 
+    legend.title=element_text(size=20),
+    plot.margin = margin(t = 12,  
+                         r = 12,  
+                         b = 12,  
+                         l = 12))  
+#  Add p-value
+#pdf(file=paste0(fig.dir, "Anova_absBSchange_binary.pdf"), width = 6, height = 4)
+Bschange_violin <- Bschange_violin + labs(subtitle = get_test_label(stat.test, detailed = TRUE, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.15))  #  Add p-value
+Bschange_violin + coord_fixed(ratio=0.05)
+#dev.off()
+
+```
+## Percentage:
+```{r}
+### Percentage body size change ===============
+
+dd <- dd[complete.cases(dd$mean_perc_BSchange),]
+
+stat.test <- dd %>% wilcox_test(mean_perc_BSchange ~ accAsia, detailed=T)
+stat.test # p < 0.0001
+dd %>%  wilcox_effsize(mean_perc_BSchange ~ accAsia) # 
+dd %>%dunn_test(mean_perc_BSchange ~ accAsia, detailed = T)
+
+percBSchange <- ggpubr::ggviolin(dd, x = "accAsia", y = "mean_perc_BSchange", fill="accAsia", color ="#636363", show.legend=F, trim = T) +
+  scale_fill_manual(values=my_colors, labels=c('Elswhere', 'Asia')) +
+  scale_color_manual(values=my_colors, labels=c('Elswhere', 'Asia')) +
+  stat_summary(fun="mean", color="white", shape=20) +
+  scale_x_discrete(labels = c(
+    "1" = "Asia",
+    "0" = "Elsewhere"))+
+  labs(
+    #title = "c) Observed Fruit length [cm] (Palms)", 
+    y="Decrease in mammalian frugivore body size [%]", x=NULL)+
+  stat_n_text(y.pos = -5) + 
+  theme(legend.position="none")+
+  theme_classic()+
+  ylim(-5, 105)+ 
+  theme(
+    axis.text=element_text(size=13, color = "black"), #change font size of axis text
+    axis.title=element_text(size=11.5), #change font size of axis titles
+    plot.title=element_text(size=20),
+    text = element_text(size = 13), #change font size of plot title
+    legend.text=element_text(size=20), #change font size of legend text
+    legend.title=element_text(size=20),
+    plot.margin = margin(t = 12,  # Top margin
+                         r = 12,  # Right margin
+                         b = 20,  # Bottom margin
+                         l = 12)) # Left margin) #change font size of legend title   
+#  Add p-value
+#pdf(file=paste0(fig.dir, "Anova_percBSchange_binary.pdf"), width = 6, height = 4)
+perc_Bschange_violin <- percBSchange + labs(subtitle = get_test_label(stat.test, detailed = TRUE, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=.2)) #  Add p-value
+perc_Bschange_violin
+#dev.off()
+```
+```{r}
+
+
+dd$accRealm2 <- factor(dd$accRealm, levels = c("Africa", "Americas", "Asia", "Elsewhere"))
+dd$accRealm2[is.na(dd$accRealm2)] <- "Elsewhere"
+
+dd2 <- dd
+
+
+
+# This is the Anova:
+res.kruskal <- dd2 %>% kruskal_test(sqrt_change ~ accRealm2)
+res.kruskal
+
+# Dunn's test (post-hoc, pairwise comparison):
+pwc <- dd2 %>% 
+  dunn_test(sqrt_change ~ accRealm2, p.adjust.method = "bonferroni", detailed=T) 
+pwc #
+
+my_colors <- setNames(c("#bdbdbd", "#bdbdbd", "#bdbdbd", "#bdbdbd"), c("Africa", "Asia", "Americas", "Elsewhere"))
+
+
+all <- ggpubr::ggviolin(dd2, x = "accRealm2", y = "sqrt_change", fill="accRealm2", color ="#636363", show.legend=F, trim = T) +
+    stat_pvalue_manual(pwc, hide.ns = T, tip.length = 0.01, y.position = 38, step.increase = 0.07) +  ## Here I add the post-hoc
+  scale_fill_manual(values=my_colors) +
+  scale_color_manual(values=my_colors) +
+  stat_summary(fun="mean", color="white", shape=20) +
+  #scale_x_discrete(labels = c("1" = "Asia","0" = "Elsewhere"))+
+ labs(																								   ## Here I add the anova labels
+    subtitle = get_test_label(res.kruskal, detailed = T),
+    caption = get_pwc_label(pwc),
+    y=expression(sqrt("Decrease in  frugivore body mass [g]")), x="Realm")+
+  stat_n_text(y.pos = -5) + 
+  theme(legend.position="none")+
+  theme_classic()+
+  theme(
+    axis.text=element_text(size=13, color = "black"), #change font size of axis text
+    axis.title=element_text(size=11.5), #change font size of axis titles
+    plot.title=element_text(size=20),
+    text = element_text(size = 13), #change font size of plot title
+    legend.text=element_text(size=20), #change font size of legend text
+    legend.title=element_text(size=20),
+    plot.margin = margin(t = 12,  # Top margin
+                         r = 12,  # Right margin
+                         b = 20,  # Bottom margin
+                         l = 12)) # Left margin) #change font size of legend title   
+
+all + theme(legend.position = "none")
+
+```
+
+
+```{r}
+
+
+dd$accRealm2 <- factor(dd$accRealm, levels = c("Africa", "Americas", "Asia", "Elsewhere"))
+dd$accRealm2[is.na(dd$accRealm2)] <- "Elsewhere"
+
+dd2 <- dd
+
+
+
+# This is the Anova:
+res.kruskal <- dd2 %>% kruskal_test(mean_perc_BSchange ~ accRealm2)
+res.kruskal
+
+# Dunn's test (post-hoc, pairwise comparison):
+pwc <- dd2 %>% 
+  dunn_test(mean_perc_BSchange ~ accRealm2, p.adjust.method = "bonferroni", detailed=T) 
+pwc #
+
+my_colors <- setNames(c("#bdbdbd", "#bdbdbd", "#bdbdbd", "#bdbdbd"), c("Africa", "Asia", "Americas", "Elsewhere"))
+
+
+all2 <- ggpubr::ggviolin(dd2, x = "accRealm2", y = "mean_perc_BSchange", fill="accRealm2", color ="#636363", show.legend=F, trim = T) +
+    stat_pvalue_manual(pwc, hide.ns = T, tip.length = 0.01, y.position = 110, step.increase = 0.07) +  ## Here I add the post-hoc
+  scale_fill_manual(values=my_colors) +
+  scale_color_manual(values=my_colors) +
+  stat_summary(fun="mean", color="white", shape=20) +
+  #scale_x_discrete(labels = c("1" = "Asia","0" = "Elsewhere"))+
+ labs(																								   ## Here I add the anova labels
+    subtitle = get_test_label(res.kruskal, detailed = T),
+    caption = get_pwc_label(pwc),
+    y="Relative decrease in  frugivore body mass [%]", x="Realm")+
+  stat_n_text(y.pos = -5) + 
+  theme(legend.position="none")+
+  theme_classic()+
+  theme(
+    axis.text=element_text(size=13, color = "black"), #change font size of axis text
+    axis.title=element_text(size=11.5), #change font size of axis titles
+    plot.title=element_text(size=20),
+    text = element_text(size = 13), #change font size of plot title
+    legend.text=element_text(size=20), #change font size of legend text
+    legend.title=element_text(size=20),
+    plot.margin = margin(t = 12,  # Top margin
+                         r = 12,  # Right margin
+                         b = 20,  # Bottom margin
+                         l = 12)) # Left margin) #change font size of legend title   
+
+all2 + theme(legend.position = "none")
+
+```
