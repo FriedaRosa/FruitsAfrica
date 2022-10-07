@@ -135,13 +135,13 @@ data_Afr_avgl_75 <- subset(data_Afr_avgl, !species %in% extinctions75)
 # ouwie_Afr_avgl_50 <- list(BM_Afr_avgl, BMS_Afr_avgl, OU1_Afr_avgl, OUM_Afr_avgl, OUMV_Afr_avgl, OUMA_Afr_avgl, OUMVA_Afr_avgl)
 
 
-BM_Afr_avgl <- OUwie(simmap_AFR, data_Afr_avgl_75, model="BM1", simmap.tree = TRUE, diagn=TRUE)
-BMS_Afr_avgl <- OUwie(simmap_AFR, data_Afr_avgl_75, model="BMS", simmap.tree = TRUE, diagn=TRUE)
-OU1_Afr_avgl <- OUwie(simmap_AFR, data_Afr_avgl_75, model="OU1", simmap.tree = TRUE, diagn=TRUE)
-OUM_Afr_avgl <- OUwie(simmap_AFR, data_Afr_avgl_75, model="OUM", simmap.tree = TRUE, diagn=TRUE)
-OUMV_Afr_avgl <- OUwie(simmap_AFR, data_Afr_avgl_75, model="OUMV", simmap.tree = TRUE, diagn=TRUE)
-OUMA_Afr_avgl <- OUwie(simmap_AFR, data_Afr_avgl_75, model="OUMA", simmap.tree = TRUE, diagn=TRUE)
-OUMVA_Afr_avgl <- OUwie(simmap_AFR, data_Afr_avgl_75, model="OUMVA", simmap.tree = TRUE, diagn=TRUE)
+BM_Afr_avgl <- OUwie(simmap75, data_Afr_avgl_75, model="BM1", simmap.tree = TRUE, diagn=TRUE)
+BMS_Afr_avgl <- OUwie(simmap75, data_Afr_avgl_75, model="BMS", simmap.tree = TRUE, diagn=TRUE)
+OU1_Afr_avgl <- OUwie(simmap75, data_Afr_avgl_75, model="OU1", simmap.tree = TRUE, diagn=TRUE)
+OUM_Afr_avgl <- OUwie(simmap75, data_Afr_avgl_75, model="OUM", simmap.tree = TRUE, diagn=TRUE)
+OUMV_Afr_avgl <- OUwie(simmap75, data_Afr_avgl_75, model="OUMV", simmap.tree = TRUE, diagn=TRUE)
+OUMA_Afr_avgl <- OUwie(simmap75, data_Afr_avgl_75, model="OUMA", simmap.tree = TRUE, diagn=TRUE)
+OUMVA_Afr_avgl <- OUwie(simmap75, data_Afr_avgl_75, model="OUMVA", simmap.tree = TRUE, diagn=TRUE)
 
 ouwie_Afr_avgl_75 <- list(BM_Afr_avgl, BMS_Afr_avgl, OU1_Afr_avgl, OUM_Afr_avgl, OUMV_Afr_avgl, OUMA_Afr_avgl, OUMVA_Afr_avgl)
 
