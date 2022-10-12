@@ -489,8 +489,8 @@ p3 <-
                            delta == "0") %>%
   ggplot(aes(y = v_logTheta, x = g_logTheta), show.legend=T)+
   facet_wrap(~regime, scales="fixed")+
-  geom_point(aes(color=g_logTheta), cex = 2)+
   geom_line(aes(group=id), col="light grey")+
+  geom_point(aes(color=g_logTheta), cex = 2)+
   scale_x_discrete(name =NULL, labels=NULL, limits=c("theta_1", "theta0"))+
   theme_classic()+
   theme(legend.position = "none")+
@@ -521,8 +521,8 @@ p4 <-
                            delta == "0") %>%
   ggplot(aes(y = v_logTheta, x = g_logTheta), show.legend=T)+
   facet_wrap(~regime, scales="fixed")+
-  geom_point(aes(color=g_logTheta), cex = 2)+
   geom_line(aes(group=id), col="light grey")+
+  geom_point(aes(color=g_logTheta), cex = 2)+
   scale_x_discrete(name =NULL, labels = NULL, limits=c("theta_1", "theta0"))+
   theme_classic()+
   labs(title="b) Model estimated trait optima across realms (simulated)")+
@@ -554,8 +554,8 @@ multi_theta$g_sigma <- factor(multi_theta$g_sigma, levels = c("X1_sigma.sq", "si
 
 p5 <- multi_sigma %>% filter(dat=="empirical") %>%
   ggplot(aes(y = v_sigma, x = g_sigma), show.legend=F)+
-  geom_point(aes(color=g_sigma), cex = 3)+
   geom_line(aes(group=id), col="light grey")+
+  geom_point(aes(color=g_sigma), cex = 3)+
   scale_x_discrete(name =NULL, 
                    limits = c("X1_sigma.sq", "sigma0"),
                    labels=NULL)+
@@ -587,8 +587,8 @@ p5
 ## not possible for simulated
 p6 <- multi_sigma %>% filter(dat=="simulated") %>%
   ggplot(aes(y = v_sigma, x = g_sigma), show.legend=F)+
-  geom_point(aes(color=g_sigma), cex = 3)+
   geom_line(aes(group=id), col="light grey")+
+  geom_point(aes(color=g_sigma), cex = 3)+
   scale_x_discrete(name =NULL, 
                    limits = c("X1_sigma.sq", "sigma0"),
                    labels=NULL)+
@@ -625,8 +625,8 @@ multi_alpha$g_alpha <- factor(multi_alpha$g_alpha, levels = c("X1_alpha", "X0_al
 
 p7 <- multi_alpha %>% filter(dat=="empirical") %>%
   ggplot(aes(y = v_alpha, x = g_alpha), show.legend=F)+
-  geom_point(aes(color=g_alpha), cex = 3)+
   geom_line(aes(group=id), col="light grey")+
+  geom_point(aes(color=g_alpha), cex = 3)+
   scale_x_discrete(name =NULL, 
                    limits = c("X1_alpha", "X0_alpha"),
                    labels=NULL)+
@@ -658,8 +658,8 @@ p7
 
 p8 <- multi_alpha %>% filter(dat=="simulated") %>%
   ggplot(aes(y = v_alpha, x = g_alpha), show.legend=F)+
-  geom_point(aes(color=g_alpha), cex = 3)+
   geom_line(aes(group=id), col="light grey")+
+  geom_point(aes(color=g_alpha), cex = 3)+
   scale_x_discrete(name =NULL, 
                    limits = c("X1_alpha", "X0_alpha"),
                    labels=NULL)+
