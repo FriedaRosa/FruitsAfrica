@@ -716,7 +716,7 @@ p2b <- ggplot(tdwg_final_0, aes(sqrt(curr_max95BodySize), sqrt(exp(log_max95FL_p
   theme(legend.position="none")+
   labs(subtitle = expression(paste(beta~"= 0.11, se = 0.1, p = n.s."))) + 
   theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015))+ 
-  labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Current frugivore body mass [g]")), color = "Distribution")
+  labs(y=expression(sqrt("Maximum 95-percentile fruit length [cm]")), x = expression(sqrt("Current frugivore body mass [kg]")), color = "Distribution")
 
 
 ## do not use in main text: 
