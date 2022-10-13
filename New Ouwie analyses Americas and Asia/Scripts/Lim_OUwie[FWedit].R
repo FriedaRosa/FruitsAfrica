@@ -176,9 +176,9 @@ fitPhylolm <- function(x, tree, continent){
   phylolm(as.formula(mod_form), data = x, phy = tree, model = "OUfixedRoot")
 }
 
-africa_ext_list <- lapply(c(0.9, 0.7, 0.5), FUN = extinctionModel, continent = "Africa", x = dd3)
-americas_ext_list <- lapply(c(0.9, 0.7, 0.5), FUN = extinctionModel, continent = "America", x = dd3)
-asia_ext_list <- lapply(c(0.9, 0.7, 0.5), FUN = extinctionModel, continent = "Asia", x = dd3)
+africa_ext_list <- lapply(c(0.9, 0.75, 0.5, 0.25, 0.1), FUN = extinctionModel, continent = "Africa", x = dd3)
+americas_ext_list <- lapply(c(0.9, 0.75, 0.5, 0.25, 0.1), FUN = extinctionModel, continent = "America", x = dd3)
+asia_ext_list <- lapply(c(0.9, 0.75, 0.5, 0.25, 0.1), FUN = extinctionModel, continent = "Asia", x = dd3)
 
 africa_ext_tree_list <- lapply(africa_ext_list, FUN = pruneTree, tree = palm_phylo)
 americas_ext_tree_list <- lapply(americas_ext_list, FUN = pruneTree, tree = palm_phylo)
@@ -199,13 +199,14 @@ america_ext_mod_list <- mapply(americas_ext_list, americas_ext_tree_list, FUN = 
 asia_ext_mod_list <- mapply(asia_ext_list, asia_ext_tree_list, FUN = fitPhylolm, continent = "Asia", SIMPLIFY = FALSE)
 
 all_ext_mod_list <- c(lapply(africa_ext_mod_list, FUN = extractModResid),
-  lapply(america_ext_mod_list, FUN = extractModResid),
-  lapply(asia_ext_mod_list, FUN = extractModResid))
+                      lapply(america_ext_mod_list, FUN = extractModResid),
+                      lapply(asia_ext_mod_list, FUN = extractModResid))
 all_ext_mod_df <- do.call("rbind",all_ext_mod_list)
-all_ext_mod_df$Ext <- rep(c(0.9, 0.7, 0.5), 3)
-all_ext_mod_df$Continent <- rep(c("Africa", "Americas", "Asia"), each = 3)
+all_ext_mod_df$Ext <- rep(c(0.9, 0.75, 0.5, 0.25, 0.1), 3)
+all_ext_mod_df$Continent <- rep(c("Africa", "Americas", "Asia"), each = 5)
 
 res <- rbind(all_mod_coef, all_ext_mod_df)
+
 
 library(ggplot2)
 group.colors <- c(Africa = "#ecd70d",Americas = "#21609a", Asia = "#843c54")
@@ -231,7 +232,8 @@ palm_ext_mod_plot <- ggplot(res) +
                              b = 12,  # Bottom margin
                              l = 12))+ # Left margin) #change font size of legend title 
   theme(plot.subtitle = element_text(vjust = -6, hjust=0.015))+
-  guides(size = "none")
+  guides(size = "none")+
+  xlab("Degree of Extinction")
 palm_ext_mod_plot
 
 ggsave(palm_ext_mod_plot, filename = "~/Desktop/palm_ext_mod_plot.pdf")
