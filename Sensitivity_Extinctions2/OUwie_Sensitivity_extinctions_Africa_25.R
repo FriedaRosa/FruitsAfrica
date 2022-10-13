@@ -100,6 +100,7 @@ simmap25 <- drop.tip.simmap(simmap_AFR, extinctions25)
 # simmap50 <- drop.tip.simmap(simmap_AFR, extinctions50)
 # simmap75 <- drop.tip.simmap(simmap_AFR, extinctions75)
 
+simmap25$node.label <- NULL
 
 # Create named vector of log-transformed trait values
 log_avgl <- dd3$logFS

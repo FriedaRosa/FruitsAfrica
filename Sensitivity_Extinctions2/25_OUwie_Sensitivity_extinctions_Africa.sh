@@ -3,7 +3,7 @@
 #SBATCH --job-name=25_OUwie_Sensitivity_extinctions_Africa
 #SBATCH --chdir=/work/woelke
 #SBATCH --output=/work/%u/%x-%A-%a.log
-#SBATCH --time=10-10:00:00
+#SBATCH --time=7-10:00:00
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=FAIL,END
  

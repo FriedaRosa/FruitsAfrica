@@ -99,7 +99,7 @@ extinctions75 <- mega_afr$SpecName[mega_afr$accAfrica == 1 & mega_afr$logFS >= t
 # simmap25 <- drop.tip.simmap(simmap_AFR, extinctions25)
 # simmap50 <- drop.tip.simmap(simmap_AFR, extinctions50)
 simmap75 <- drop.tip.simmap(simmap_AFR, extinctions75)
-
+simmap75$node.label <- NULL
 
 # Create named vector of log-transformed trait values
 log_avgl <- dd3$logFS
