@@ -112,7 +112,7 @@ sum(table(issues$model))
 
 ## Models with convergence problems ##
 
-setwd("~/ArbeitImUrlaub/GitHub/FruitsAfrica/Data/OUwie/out/")
+setwd("~/GitHub/FruitsAfrica/Data/OUwie/out/")
 
 # Africa
 Afr_avgl <- read.table("issues_AVGL.txt", header=T)
@@ -127,9 +127,9 @@ Afr_BM$group <- "Afr_BM"
 Africa <- merge(Afr_avgl, Afr_BM, all=T)
 
 # Americas
-setwd("~/ArbeitImUrlaub/Andressa/output_AM_avgl/")
+setwd("~/GitHub/FruitsAfrica/New Ouwie analyses Americas and Asia/Results/")
 AM_avgl <- read.table("issues_AVGL_AM.txt", header=T)
-AM_BM <- read.table("../output_AM_BM/issues_BM_AM.txt", header=T)
+AM_BM <- read.table("issues_BM_AM.txt", header=T)
 
 AM_avgl$regime <- "Americas"
 AM_avgl$dat <- "empirical"
@@ -143,14 +143,12 @@ Americas <- merge(AM_avgl, AM_BM, all=T)
 
 
 # Asia
-setwd("~/ArbeitImUrlaub/Andressa/output_AS_avgl/")
-AS_avgl <- issues
 AS_avgl <- read.table("issues_AVGL_AS.txt", header=T)
 AS_avgl$regime <- "Asia"
 AS_avgl$dat <- "empirical"
 AS_avgl$group <- "AS_avgl"
 
-AS_BM <- read.table("../output_AS_BM/issues_BM_AS.txt", header=T)
+AS_BM <- read.table("issues_BM_AS.txt", header=T)
 AS_BM$regime <- "Asia"
 AS_BM$dat <- "simulated"
 AS_BM$group <- "AS_BM"
@@ -295,17 +293,16 @@ all_avgl %>% filter(dat == "simulated" &regime %in% c("Asia", "Americas")) %>%
 library(tidyr); library(dplyr); library(scales); library(viridis); library(viridisLite); library(ggplot2)
 # =======================
 rm(list = ls())
-setwd("~/ArbeitImUrlaub/Andressa/output_AS_avgl/")
 # =======================
 
 # 100 trees results:
 Asia_emp <- read.table("merged_data_AVGL_AS.txt", header=T)
-Amer_emp <- read.table("../output_AM_avgl/merged_data_AVGL_AM.txt", header=T)
-Afr_emp <- read.table("../../../GitHub/FruitsAfrica/Data/OUwie/out/merged_data_AVGL.txt", header=T)
+Amer_emp <- read.table("merged_data_AVGL_AM.txt", header=T)
+Afr_emp <- read.table("../../Data/OUwie/out/merged_data_AVGL.txt", header=T)
 
-Asia_sim <- read.table("../output_AS_BM/merged_data_BM_AS.txt", header=T)
-Amer_sim <- read.table("../output_AM_BM/merged_data_BM_AM.txt", header=T)
-Afr_sim <- read.table("../../../GitHub/FruitsAfrica/Data/OUwie/out/merged_data_BM.txt", header=T)
+Asia_sim <- read.table("merged_data_BM_AS.txt", header=T)
+Amer_sim <- read.table("merged_data_BM_AM.txt", header=T)
+Afr_sim <- read.table("../../Data/OUwie/out/merged_data_BM.txt", header=T)
 
 
 
@@ -337,7 +334,11 @@ all_merged$tree <- "set_trees"
 all_merged_wide <- all_merged
 
 #
-write.table(all_merged_wide, file = "../../all_merged_wide_Afr_Asi_Amer.txt", sep = "\t", row.names = F, col.names = T)
+#write.table(all_merged_wide, file = "../../all_merged_wide_Afr_Asi_Amer.txt", sep = "\t", row.names = F, col.names = T)
+
+all_merged_wide <- read.csv("GitHub/FruitsAfrica/New Ouwie analyses Americas and Asia/Results/all_merged_wide_Afr_Asi_Amer.txt", header=T, sep="\t")
+
+
 
 # transform parameters to long-format
 ## megafauna:
@@ -476,20 +477,22 @@ p2_1<-dd %>%
        y = "Proportion of selected models",
        title ="Proportion of selected models")
 p2_1
+## plot was by-hand annotated to add aicc weights averaged across selected models
 
 
 ## Theta dot-line plot:  ==============================
 
 
-group.colors <- c(theta_1 = "blue", theta0 = "#636363",)
+group.colors <- c(theta_1 = "blue", theta0 = "#636363")
 multi_theta$g_logTheta <- factor(multi_theta$g_logTheta, levels = c("theta_1", "theta0"))
+
 
 p3 <- 
   multi_theta %>% filter(dat=="empirical" & 
                            delta == "0") %>%
   ggplot(aes(y = v_logTheta, x = g_logTheta), show.legend=T)+
   facet_wrap(~regime, scales="fixed")+
-  geom_line(aes(group=id), col="light grey")+
+  geom_line(aes(group=id), col="light grey")+  
   geom_point(aes(color=g_logTheta), cex = 2)+
   scale_x_discrete(name =NULL, labels=NULL, limits=c("theta_1", "theta0"))+
   theme_classic()+
@@ -562,7 +565,7 @@ p5 <- multi_sigma %>% filter(dat=="empirical") %>%
   facet_wrap(~regime, scales="fixed")+
   theme_classic()+
   #theme(legend.position = "none")+
-  scale_y_continuous(name =expression(sigma^2~"Evolutionary rate"))+
+  scale_y_continuous(name =expression(sigma^2~"log(Evolutionary rate)"))+
   scale_color_manual("Parameters", labels = NULL, values = group.colors)+
   #geom_point(data = afr_multi_sigma_MCC, aes(y = v_sigma, x = g_sigma), cex =3)+
   #geom_line(data= afr_multi_sigma_MCC, aes(group = id), col="black")+
@@ -595,7 +598,7 @@ p6 <- multi_sigma %>% filter(dat=="simulated") %>%
   facet_wrap(~regime, scales="fixed")+
   theme_classic()+
   #theme(legend.position = "none")+
-  scale_y_continuous(name =expression(sigma^2~"Evolutionary rate"))+
+  scale_y_continuous(name =expression(sigma^2~"log(Evolutionary rate)"))+
   scale_color_manual("Parameters", labels = NULL, values = group.colors)+
   #geom_point(data = afr_multi_sigma_MCC, aes(y = v_sigma, x = g_sigma), cex =3)+
   #geom_line(data= afr_multi_sigma_MCC, aes(group = id), col="black")+
@@ -633,7 +636,7 @@ p7 <- multi_alpha %>% filter(dat=="empirical") %>%
   facet_wrap(~regime, scales="fixed")+
   theme_classic()+
   #theme(legend.position = "none")+
-  scale_y_continuous(name =expression(alpha~"Selective force"))+
+  scale_y_continuous(name =expression(alpha~"log(Selective force)"))+
   scale_color_manual("Parameters", labels = NULL, values = group.colors)+
   #geom_point(data = afr_multi_sigma_MCC, aes(y = v_sigma, x = g_sigma), cex =3)+
   #geom_line(data= afr_multi_sigma_MCC, aes(group = id), col="black")+
@@ -666,7 +669,7 @@ p8 <- multi_alpha %>% filter(dat=="simulated") %>%
   facet_wrap(~regime, scales="fixed")+
   theme_classic()+
   #theme(legend.position = "none")+
-  scale_y_continuous(name =expression(alpha~"Selective force"))+
+  scale_y_continuous(name =expression(alpha~"log(Selective force)"))+
   scale_color_manual("Parameters", labels = NULL, values = group.colors)+
   #geom_point(data = afr_multi_sigma_MCC, aes(y = v_sigma, x = g_sigma), cex =3)+
   #geom_line(data= afr_multi_sigma_MCC, aes(group = id), col="black")+
