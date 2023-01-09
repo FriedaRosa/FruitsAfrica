@@ -46,7 +46,7 @@ tdwg_final3$accAfrica <- factor(tdwg_final3$accAfrica, levels = c("0", "1"))
 
 ### World map shape file ============
 
-library(rgeos); library(stringr)
+library(rgeos); library(stringr); library(rgdal)
 
 shp <- readOGR(dsn = "./shp/", layer = "TDWG_level3_Coordinates")
 shp.df <- gSimplify(shp, tol=0.05, topologyPreserve = TRUE)
