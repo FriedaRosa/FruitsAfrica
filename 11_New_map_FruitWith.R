@@ -1,6 +1,6 @@
 library(viridis); library(scales)
 ## Map: fruit width (angiosperms)
-tdwg_final <- read.csv(file.path(data.dir,"tdwg_all_plantsMammals_env.csv"))
+tdwg_final <- read.csv(file.path(data.dir,"tdwg_final_angioFW.csv"))
 table(tdwg_final$accRealm)
 tdwg_final2 <- tdwg_final
 
@@ -55,22 +55,20 @@ dd <- tdwg_final3
 
 # For scale in the map: 
 q_values_FS <- c(1.339301,  2.648429,  3.500000,  5.000000,  5.981220,  7.500000,  8.965212, 10.831859, 14.506237)
-a <- c(18,21)
-q_values <- append(q_values_FS, a)
+
 size_v <- seq(1,3, length.out = 8)
-b <- c(3.33, 3.7)
-size_v <- append(size_v, b)
+
 
 # Fruit Width mapped ========
 target.col <- c("LAT", "LONG", "LEVEL_3_CO", "max95FW_angios")
 tdwg_maxFW <- melt(dd[,target.col], id.vars = c("LAT", "LONG", "LEVEL_3_CO"), measure.vars = "max95FW_angios", na.rm=T)
-tdwg_maxFW$value <- tdwg_maxFW$value/10
+tdwg_maxFW$value <- tdwg_maxFW$value
 max_q_mdpt <- vector()#
 
 my_colors <- c("#440154", "#46327e", "#365c8d", "#277f8e", "#1fa187", "#4ac16d", "#a0da39", "#fde725", "#f48849", "#db5c68" )
 
-for(i in 1:(length(q_values)-1)){ max_q_mdpt[i] <- (q_values[i] + q_values[i+1])/2 }
-tdwg_maxFW$maxFS_q <- cut(tdwg_maxFW$value, q_values, include.lowest = T)
+for(i in 1:(length(q_values_FS)-1)){ max_q_mdpt[i] <- (q_values_FS[i] + q_values_FS[i+1])/2 }
+tdwg_maxFW$maxFS_q <- cut(tdwg_maxFW$value, q_values_FS, include.lowest = T)
 levels(tdwg_maxFW$maxFS_q) <- gsub(levels(tdwg_maxFW$maxFS_q), pattern = ",", replacement = " - ")
 levels(tdwg_maxFW$maxFS_q) <- gsub(levels(tdwg_maxFW$maxFS_q), pattern = "\\(|\\[|\\]", replacement = "")
 
