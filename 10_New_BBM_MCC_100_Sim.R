@@ -140,6 +140,8 @@ palm_trait <- palm_trait0 %>% dplyr::select(SpecName, accGenus, PalmTribe, PalmS
 # Skip this part and use this .rds file to save computing time:
 dd_merge <- readRDS(file.path(data.dir, "kew_merged_Arecaceae.rds"))
 
+
+
 # =================================================================================================================================
 
 # # Names data =====
@@ -326,6 +328,118 @@ tdwg_final2 <- merge(tdwg_final2, palms3[,c("Area_code_L3", "log_max95FL_palms_B
 
 
 # write.csv(tdwg_final2, file=paste0(data.dir, "/tdwg_final_newBBM.csv"))
+
+
+## Add Angiosperms ========
+# Angiosperms
+angios <- read.csv(file.path(data.dir, "average_fruit_width_Frieda_v2.csv"))
+sp_angios <- angios$Genus_Species_Accepted_LCVP
+length(unique(sp_angios))
+
+# 1.2 Distribution data on botanical country (TDWG3) scale ================
+
+dd_merge <- readRDS(file.path(data.dir, "kew_merged_Angios.rds"))
+
+# Names data =====
+# names <- read.table(file.path(data.dir, "wcvp_names.txt"), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+# names <- names %>% filter(taxon_rank == "Species" & family != "Arecaceae")
+# names <- names %>% dplyr::select(plant_name_id, taxon_status, family, genus, species, taxon_name, accepted_plant_name_id)
+# names$SpecName <- paste(names$genus, names$species, sep="_")
+# #
+# names_angio <- names %>% filter(SpecName %in% sp_angios)
+# 
+# # Distribution data ======
+# dist <- read.table(file.path(data.dir, "wcvp_distribution.txt"), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+# dist <- dist %>% dplyr::select(plant_name_id, continent, region, area_code_l3, area)
+# 
+# # Merge ====
+# dd_merge <- merge(names_angio, dist, by="plant_name_id", all.x=TRUE)
+# dd_merge <- unique(dd_merge)
+# 
+# 
+# # Counts =====
+# length(unique(dd_merge$family)) # 168 families
+# length(unique(dd_merge$genus))  # 1016 genera
+# length(unique(dd_merge$area_code_l3)) #363 tdwg3
+# length(unique(dd_merge$SpecName))# 4400 species
+# length(unique(dd_merge$accepted_plant_name_id)) #4596
+# length(unique(dd_merge$plant_name_id)) #4677
+# 
+# # Save to .RDS ====
+# saveRDS(dd_merge, file.path(data.dir, "kew_merged_Angios.rds"))
+
+# =================================================================================================================================
+
+dd_merge <- dd_merge %>% select("SpecName", "genus", "family", "area_code_l3", "area", "region", "continent")
+
+regions <- dd_merge %>% 
+  dplyr::select(area_code_l3, area, region, continent) %>% 
+  mutate_all(na_if,"") %>% 
+  filter_at(vars(area_code_l3), any_vars(!is.na(.))) %>% 
+  distinct(.)
+
+
+# reduced to those with distribution data (!= NA)
+dd_merge <- dd_merge %>%
+  filter_at(vars(area_code_l3), all_vars(!is.na(.)))
+
+str(dd_merge)
+
+angios_FW_kew <- merge(angios, dd_merge, by.x="Genus_Species_Accepted_LCVP", by.y="SpecName", all.x=T)
+
+
+# 3. Environmental data ========================
+
+tdwg_env <- read.csv(file.path(data.dir, "TDWG_Environment_AllData_2019Feb.csv"))
+
+env.vars <- c("LEVEL_3_CO", "LAT", "LONG",  "CONTINENT", "CH_Mean", "CH_PercCover", "bio1_mean", "bio4_mean", "bio15_mean", "bio12_mean")
+tdwg_env2<- tdwg_env[,c(env.vars)]
+rownames(tdwg_env2) <- tdwg_env2$LEVEL_3_CO
+angios_env <- unique(merge(angios_FW_kew, tdwg_env2, by.x=c("area_code_l3", "continent"), by.y=c("LEVEL_3_CO", "CONTINENT")))
+angios_env <- unique(angios_env)
+
+# 4. Mammal / Frugivore data ========================	
+
+phylacine_trait <- read.csv(file.path(data.dir, "Phylacine_Trait_data.csv")) ## Phylacine trait = for body masses of mammals
+mammal_curr_comb_occ <- read.csv(file.path(data.dir, "mammal_curr_occ.csv")) ## mammal curr = list of botanic countries and extant mammals (from IUCN range maps)
+mammal_presnat_comb_occ <- read.csv(file.path(data.dir, "mammal_presnat_occ.csv")) ## mammal presnat = list of botanic countries and extant+extinct mammals
+frugivoreClass <- read.csv(file.path(data.dir, "frugivoreClassification.csv")) ## frugivoreClass = mammal list with indication of proportion frugivory (family, order)
+
+## step 1. make mammal country lists (1. current, 2. extinct)
+
+mammal_countrylist <- Reduce(union, list(unique(mammal_presnat_comb_occ$LEVEL_3_CO),   # 191 botanic countries
+                                         unique(mammal_curr_comb_occ$LEVEL_3_CO)))     # 190 botanic countries
+
+## 2. make list of countries where mammals and species overlap
+palms <- readRDS(file.path(data.dir,"palms_final.rds"))
+
+mammal_plant_intersect <- intersect(unique(palms$Area_code_L3), mammal_countrylist)  #191 botanic countries
+sort(mammal_plant_intersect, decreasing = FALSE)
+angios_env$FW_cm <- round(angios_env$Fruit_width_mm_combi /10, 3)
+
+## 3. aggregate maximum + median angiosperm and (empirical, simulated) palm traits on tdwg3; merge both datasets together
+tdwg_angios_summary <- ddply(.data = subset(angios_env, area_code_l3 %in% mammal_plant_intersect),
+                             .variables = .(area_code_l3),
+                             .fun = dplyr::summarise,
+                             area = area,
+                             
+                             meanFW_angios = mean(FW_cm, na.rm = T),
+                             medianFW_angios = median(FW_cm, na.rm = T),
+                             max95FW_angios = exp(quantile(log(FW_cm), probs = 0.95, na.rm = T)))
+
+tdwg_angios_summary <- strings2factors(tdwg_angios_summary)
+str(tdwg_angios_summary)
+tdwg_angios_summary <- unique(tdwg_angios_summary)
+
+### Merge them ========
+
+str(tdwg_final2)
+str(tdwg_angios_summary)
+tdwg_angios_summary2 <- tdwg_angios_summary %>% filter(area_code_l3 %in% tdwg_final2$LEVEL_3_CO)
+
+tdwg_final3 <- unique(merge(tdwg_angios_summary2, tdwg_final2, by.x=c("area_code_l3"), by.y=c("LEVEL_3_CO"), all=T))
+
+
 
 ### For c) ============== (merging data and running linear models)
 
@@ -528,11 +642,16 @@ lms_all_100trees %>% filter(variable == "normalized(sqrt(TempSeas))" ) %>% with(
 
 ## Data import ========================
 tdwg_final3 <- read.csv(file.path(data.dir, "tdwg_final_newBBM.csv"), header=T, sep=",")
+tdwg_final3$LEVEL_3_CO <- tdwg_final3$area_code_l3
+tdwg_final3$area_code_l3 <- NULL
 
 ## Data handling  ========================
 tdwg_final3$accRealm[tdwg_final3$LEVEL_3_CO == "MDG"] <- "Madagascar"
 tdwg_final3$LEVEL_3_CO <- as.factor(tdwg_final3$LEVEL_3_CO)
 #tdwg_final3$accAfrica <- factor(tdwg_final3$accAfrica, levels = c("1", "0"))
+
+write.csv(tdwg_final3, file.path(data.dir, "tdwg_final_2023_v2.csv"))
+
 
 # Set negative values (i.e., positive body mass changes) to zero before log-transformation:
 tdwg_final_0 <- tdwg_final3
@@ -544,6 +663,7 @@ tdwg_final_0$mean_abs_BSchange <- tdwg_final_0$mean_abs_BSchange/1000
 # sqrt transform
 tdwg_final_0$sqrt_change <- sqrt(tdwg_final_0$mean_abs_BSchange)
 
+write.csv(tdwg_final_0, file.path(data.dir, "tdwg_final_0.csv"))
 
 # Scale:
 normalized<-function(y) {
@@ -660,7 +780,7 @@ cleanCuts <- function(x){
 }
 ### World map shape file ============
 
-library(rgeos); library(stringr); library(rgdal)
+library(rgeos); library(stringr); library(rgdal); library(ggplot2)
 
 shp <- readOGR(dsn = "FruitsAfrica/Data/shp", layer = "TDWG_level3_Coordinates")
 shp.df <- gSimplify(shp, tol=0.05, topologyPreserve = TRUE)
@@ -852,3 +972,4 @@ sim_violin <- ggpubr::ggviolin(dd, x = "accAfrica", y = "max95_BBM", fill="accAf
 sim_violin <- sim_violin + labs(subtitle = get_test_label(stat.test, detailed = TRUE, type="expression"))+theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.25))
 #sim_violin <- sim_violin + labs(subtitle = expression(paste("Africa:"~beta~"= -0.04, se = 0.11, p = n.s."))) + theme(legend.position="none", plot.subtitle = element_text(vjust = -6, hjust=0.015)) +coord_fixed(ratio=3.25)   #  Add p-value
 sim_violin
+
