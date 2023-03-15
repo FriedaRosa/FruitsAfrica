@@ -1,0 +1,31 @@
+﻿Call:;;;;;
+lm(formula = normalized(sqrt(max95FW_angios)) ~ normalized((sqrt_change)) * ;;;;;
+    factor(accAfrica) + normalized(sqrt(curr_max95BodySize)) * ;;;;;
+    factor(accAfrica) + normalized(I(MAT^2)) + normalized(sqrt(TempSeas)) + ;;;;;
+    normalized(sqrt(AnnualPrec)) + normalized(sqrt(PrecSeas)) + ;;;;;
+    normalized(sqrt(CH_Mean)), data = full_df, na.action = na.exclude);;;;;
+;;;;;
+Residuals:;;;;;
+Min;1Q;Median;3Q;Max;
+-0.252079;-0.055831;0.003681;0.059174;0.26112;
+;;;;;
+Coefficients:;;;;;
+;Estimate;Std. Error;t value;Pr(>|t|);
+(Intercept);0.21907;0.10004;2.19;0.030705;*
+normalized((sqrt_change));0.03091;0.05137;0.602;0.548679;
+factor(accAfrica)1;0.21958;0.07187;3.055;0.00284;**
+normalized(sqrt(curr_max95BodySize));-0.10842;0.06366;-1.703;0.091479;.
+normalized(I(MAT^2));0.25408;0.07421;3.424;0.000876;***
+normalized(sqrt(TempSeas));-0.02654;0.06286;-0.422;0.673689;
+normalized(sqrt(AnnualPrec));0.13991;0.07064;1.981;0.050192;.
+normalized(sqrt(PrecSeas));0.04266;0.08992;0.474;0.636176;
+normalized(sqrt(CH_Mean));-0.13497;0.07704;-1.752;0.082659;.
+normalized((sqrt_change)):factor(accAfrica)1;0.15626;0.15045;1.039;0.30133;
+factor(accAfrica)1:normalized(sqrt(curr_max95BodySize));-0.02652;0.17027;-0.156;0.87653;
+---;;;;;
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1;;;;;
+;;;;;
+Residual standard error: 0.09583 on 107 degrees of freedom;;;;;
+  (12 observations deleted due to missingness);;;;;
+Multiple R-squared:  0.7276,    Adjusted R-squared:  0.7022 ;;;;;
+F-statistic: 28.59 on 10 and 107 DF,  p-value: < 2.2e-16;;;;;

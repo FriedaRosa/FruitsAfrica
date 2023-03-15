@@ -4,24 +4,25 @@
  
 R-scripts:
 
-1) 0_generateTDWGData.R:
-	- requires:
-		- PalmTraits1.0
+0_generateTDWGData.R:
+	- requires (Data directory):
+		- PalmTraits1.0.txt
+		- average_fruit_width_Frieda_v2.csv (vertebrate-dispersed Angiosperm trait data)
+		- BBM_summary_all.csv (BBM simulated fruit length for palms. 100 simulations on MCC tree, averaged)
 		- kew_merged_Arecaceae.rds (subset WCVP data)
+		- kew_merged_Angios.rds (subset WCVP data)
 		- palms_in_tdwg3.csv (from Lim2020)
 		- palms_tdwg_realms.csv (list of tdwg3 units and biogeographic realms)
-		- BBM_sim_.rds	(created in: 1_OUwieModelsCluster.R)
-		- BBMsim_Sp_mean_100trees.csv (created in 2_BBM_spAvg_100trees.R)
 		- TDWG_Environment_AllData_2019Feb.csv (from Lim 2020)
 		- Phylacine_Trait_data.csv (from Lim 2020)
 		- mammal_curr_occ.csv (from Lim 2020)
 		- mammal_presnat_occ.csv (from Lim 2020)
 		- frugivoreClassification.csv (from Lim 2020)
-	- produces:
+	- produces (Results directors):
 		- palms_final = dataset that was used in OUwie models
 		- tdwg_final = dataset that was used in ANOVA, LMs, spatial maps
 
-2) 1_OUwieModelsCluster.R:
+1_OUwieModelsCluster.R: (was run on the HPC Cluster of the UFZ Leipzig)
 	- requires: 
 		- palms_final.csv 
 		- set of 100 phylogenetic trees 
@@ -31,7 +32,6 @@ R-scripts:
 		- 101x raw.rds
 		- 101x processed.rds
 		- 1 simmap reconstruction for regimes
-		- 101x BBM simulated traits (for averaging)
 		- 1 file with models that show convergence issues 
 		- 2 merged model tables for empirical and simulated traits (for 4_OUwieFigs.R)
 	- Steps:
@@ -46,20 +46,16 @@ R-scripts:
 		- model comparison with aicc weights
 		- save raw, processed, bestfit tables
 
-3) 2_BBM_spAvg_100trees.R
-	- requires:
-		- 101x BBM simulations 
-	- produces: 
-		- BBMsim_Sp_mean_100trees.csv
+1b_OUwieModelsConvergenceAnalysis.R: 
+	- requires: 
+		- HPC Cluster output (folder with 100 files, 1 for each phylogenetic tree. Not provided here)
+		- issues.txt (produced in the first part, can be  read in from the folder)
+	- produces:
+		- isses.txt (file with list of failed models)
+		- merged_data_AVGL.txt (file with results from OUwie models excluding those that produced convergence issues)
+		- Plot for convergence issues
 
-4) 3_BBM_rootstates_100trees.R
-	- requires:
-		- 101x BBM simulations
-	- produces: 
-		- list with all simulations, all root states and their probability densities
-		(FS_at_root_100sims.csv)
-
-5) 4_OUwieFigs.R
+2_OUwieFigs.R
 	- requires:
 		- 2 merged tables for empirical and simulated traits (from 1_OUwieModelsCluster.R)
 	- produces: 
@@ -71,14 +67,8 @@ R-scripts:
 		- Plot selected models
 		- Plot dot-line plots for theta and sigma
 
-6) 5_Calc_OUwie_CI.R
-	- requires: 
-		- master_file_long_sep_emp_sim.txt (from 4_OUwieFigs.R)
-	- produces: 
-		- table with confidence intervals around thetas
 
-
-7) 6_ ANOVA_LinearModels.R:
+3_ANOVA_LinearModels.R:
 	- requires: 
 		- tdwg_final.csv
 		- shapefile: TDWG_level3_Coordinates
@@ -86,6 +76,7 @@ R-scripts:
 		- Data transformations
 		- ANOVA FL (emp) ~ Africa
 		- ANOVA FL (sim) ~ Africa
+		- ANOVA FW (angios) ~ Africa
 		- ANOVA BS change ~ Realms
 		- Termplots LM Predictors
 		- Data transformation and density plots
@@ -94,11 +85,12 @@ R-scripts:
 		- Africa / elsewhere subset analysis
 		- correlation test for predictors 
 		- included world maps with plotted traits
-8) 7_PlotPhyloRegimes
-	- R script for plotted phylogeny with annotated tribes and visualized traits for SI
-8) 9_SAR models
+4_SAR models
 	- requires:
 		- tdwg_final.csv
 
-9) Sensitivity_Extinctions:
-	- Folder with scripts for sensitivity analysis where 10% of species were randomly removed
+Folder: Additional_Analyses
+	- OUwie Americas and OUwie Asia
+	- Sensitivity_Extinctions (10% of species were randomly removed)
+	- Sensitivity_Extinctions2 (25, 50, 75% of fruits > 4 cm from Africa removed)
+	- SI_Figure_Phylogeny (code and data for SI figure)
