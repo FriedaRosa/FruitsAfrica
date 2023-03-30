@@ -11,7 +11,7 @@ options(stringsAsFactors =FALSE)
 ## Packages ========================
 library(plyr); library(dplyr); library(reshape2); library(EnvStats);
 library(ggplot2); library(rstatix); library(EnvStats); library(ggpubr)
-library(performance); library(sjPlot)
+library(performance); library(sjPlot); library(viridis)
 
 cleanCuts <- function(x){
   # Cleans up vector of factor levels generated using `cut` function for nicer plotting
@@ -48,7 +48,7 @@ tdwg_final3$accAfrica <- factor(tdwg_final3$accAfrica, levels = c("0", "1"))
 
 library(rgeos); library(stringr); library(rgdal)
 
-shp <- readOGR(dsn = "FruitsAfrica_copy/shp", layer = "TDWG_level3_Coordinates")
+shp <- readOGR(dsn = "FruitsAfrica/shp", layer = "TDWG_level3_Coordinates")
 shp.df <- gSimplify(shp, tol=0.05, topologyPreserve = TRUE)
 shp.df <- fortify(shp.df)
 county_ids <- as.data.frame(cbind(id = rownames(shp@data), LEVEL_3_CO = shp@data$LEVEL_3_CO, region = shp@data$LEVEL_NAME))
@@ -168,8 +168,10 @@ maxFS_p <- ggplot() +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(expand = c(0,0)) +
   scale_size_manual(values = seq(1,3, length.out = 8))+
-  scale_fill_viridis(discrete = TRUE) +
-  scale_color_viridis(discrete = TRUE) +
+  #scale_fill_viridis(discrete = TRUE) +
+  #scale_color_viridis(discrete = TRUE) +
+  scale_color_manual(values = my_colors,
+                     aesthetics = c("colour", "fill"), drop=F)+
   theme(legend.position = "right",
         text = element_text(size = 13),
         legend.title = element_text(size = 13),
@@ -178,16 +180,16 @@ maxFS_p
 
 
 library(patchwork)
-ggsave(file.path(fig.dir, "3_palms_maxFS_p.pdf"), maxFS_p, width = 8, height = 4)
+ggsave(file.path(fig.dir, "new_color_3_palms_maxFS_p.pdf"), maxFS_p, width = 8, height = 4)
 
 
 ### 1.1b Simulated fruit size =========
 
-stat.test <- dd %>% wilcox_test(sqrt(exp(log_max95FL_palms_BBM_MCC))  ~ accAfrica)
+stat.test <- dd %>% wilcox_test(sqrt(max95_BBM) ~ accAfrica)
 stat.test # n.s.
-dd %>%  wilcox_effsize(sqrt(exp(log_max95FL_palms_BBM_MCC))  ~ accAfrica) # moderate
+dd %>%  wilcox_effsize(sqrt(max95_BBM)~ accAfrica) # moderate
 
-sim_violin <- ggpubr::ggviolin(dd, x = "accAfrica", y = "sqrt(exp(log_max95FL_palms_BBM_MCC)) ", fill="accAfrica", color ="#636363", show.legend=F, trim = T) +
+sim_violin <- ggpubr::ggviolin(dd, x = "accAfrica", y = sqrt("max95_BBM"), fill="accAfrica", color ="#636363", show.legend=F, trim = T) +
   scale_fill_manual(values=my_colors, labels=c('Elswhere', 'Africa')) +
   scale_color_manual(values=my_colors, labels=c('Elswhere', 'Africa')) +
   stat_summary(fun="mean", color="white", shape=20) +
@@ -229,8 +231,8 @@ dev.off()
 q_values <- c(1.339301,  2.648429,  3.53000,  5.000000,  5.961220,  7.500000,  8.95212, 10.831859, 14.506237)
 size_v <- seq(1,3, length.out = 8)
 my_colors <- c("#440154", "#46327e", "#365c8d", "#277f8e", "#1fa187", "#4ac16d", "#a0da39", "#fde725" )
+my_colors <- c("#e0ccff", "#b380ff", "#365c8d", "#277f8e", "#1fa187", "#4ac16d", "#a0da39", "#fde725" )
 
-# Fruit Width mapped ========
 
 target.col <- c("LAT", "LONG", "LEVEL_3_CO", "max95_BBM")
 tdwg_maxBBM <- melt(dd[,target.col], id.vars = c("LAT", "LONG", "LEVEL_3_CO"), measure.vars = "max95_BBM", na.rm=T)
@@ -259,39 +261,117 @@ maxFSsim_p_new <- ggplot() +
         legend.text = element_text(size = 13)) 
 
 maxFSsim_p_new
-ggsave(file.path(fig.dir, "3_palms_maxFS_BBM_p.pdf"), maxFSsim_p_new, width = 8, height = 4)
+ggsave(file.path(fig.dir, "new_color_3_palms_maxFS_BBM_p.pdf"), maxFSsim_p_new, width = 8, height = 4)
+
+### Original Scale:
+target.col <- c("LAT", "LONG", "LEVEL_3_CO", "max95_BBM")
+tdwg_maxBBM <- melt(dd[,target.col], id.vars = c("LAT", "LONG", "LEVEL_3_CO"), measure.vars = "max95_BBM", na.rm=T)
+q_probs = seq(0.0, 1.0, 0.125)
+q_values = as.numeric(quantile(tdwg_maxBBM$value, probs = q_probs, na.rm = T, type = 8))
+max_q_mdpt <- vector()
+for(i in 1:(length(q_values)-1)){ max_q_mdpt[i] <- (q_values[i] + q_values[i+1])/2 }
+tdwg_maxBBM$maxBBM_q <- cut(tdwg_maxBBM$value, q_values, include.lowest = T)
+levels(tdwg_maxBBM$maxBBM_q) <- gsub(levels(tdwg_maxBBM$maxBBM_q), pattern = ",", replacement = " - ")
+levels(tdwg_maxBBM$maxBBM_q) <- gsub(levels(tdwg_maxBBM$maxBBM_q), pattern = "\\(|\\[|\\]", replacement = "")
+
+
+maxBBM_p <- ggplot() +
+  geom_polygon(aes(y = lat, x = long, group = group), fill = "grey80", size = 0.1, colour = "white",
+               data = shp.df2) +
+  geom_point(aes(x = LONG, y = LAT,
+                 fill = maxBBM_q, size = maxBBM_q),
+             data =tdwg_maxBBM, alpha = 0.9,  pch = 21, colour = "black") +
+  coord_fixed() +
+  map_theme + theme(plot.title = element_blank()) +
+  guides(size="none", fill = guide_legend(title = "Maximum\n(95th percentile)\nfruit length [cm]",
+                                          override.aes = list(size = seq(1,3, length.out = 8)))) +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_size_manual(values = seq(1,3, length.out = 8))+
+  #scale_fill_viridis(discrete = TRUE) +
+  #scale_color_viridis(discrete = TRUE) +
+  scale_color_manual(values = my_colors,
+                     aesthetics = c("colour", "fill"), drop=F)+
+  theme(legend.position = "right",
+        text = element_text(size = 13),
+        legend.title = element_text(size = 13),
+        legend.text = element_text(size = 13)) 
+
+maxBBM_p
+ggsave(file.path(fig.dir, "new_color_3_palms_maxBBM_p_originalscale.pdf"), maxBBM_p, width = 8, height = 4)
+
 
 ## Angiosperm Fruit width =======
+q_values <- c(1.339301,  2.648429,  3.53000,  5.000000,  5.961220,  7.500000,  8.95212, 10.831859, 14.506237)
+size_v <- seq(1,3, length.out = 8)
 
 target.col <- c("LAT", "LONG", "LEVEL_3_CO", "max95FW_angios")
 tdwg_maxFW <- melt(dd[,target.col], id.vars = c("LAT", "LONG", "LEVEL_3_CO"), measure.vars = "max95FW_angios", na.rm=T)
-tdwg_maxFW$value <- tdwg_maxFW$value
 max_q_mdpt <- vector()
 
-my_colors <- c("#440154", "#46327e", "#365c8d", "#277f8e", "#1fa187", "#4ac16d", "#a0da39", "#fde725", "#f48849", "#db5c68" )
-
 for(i in 1:(length(q_values)-1)){ max_q_mdpt[i] <- (q_values[i] + q_values[i+1])/2 }
-tdwg_maxFW$maxFS_q <- cut(tdwg_maxFW$value, q_values, include.lowest = T)
-levels(tdwg_maxFW$maxFS_q) <- gsub(levels(tdwg_maxFW$maxFS_q), pattern = ",", replacement = " - ")
-levels(tdwg_maxFW$maxFS_q) <- gsub(levels(tdwg_maxFW$maxFS_q), pattern = "\\(|\\[|\\]", replacement = "")
+tdwg_maxFW$maxFW_q <- cut(tdwg_maxFW$value, q_values, include.lowest = T)
+levels(tdwg_maxFW$maxFW_q) <- gsub(levels(tdwg_maxFW$maxFW_q), pattern = ",", replacement = " - ")
+levels(tdwg_maxFW$maxFW_q) <- gsub(levels(tdwg_maxFW$maxFW_q), pattern = "\\(|\\[|\\]", replacement = "")
+
 
 maxFW_angios_p <- ggplot() +
   geom_polygon(aes(y = lat, x = long, group = group), fill = "grey80", size = 0.1, colour = "white", data = shp.df2) +
-  geom_point(aes(x = LONG, y = LAT, fill = maxFS_q, size = maxFS_q), data =tdwg_maxFW, alpha = 0.9, colour = "black", pch = 21) +
+  geom_point(aes(x = LONG, y = LAT, fill = maxFW_q, size = maxFW_q), data =tdwg_maxFW, alpha = 0.9, colour = "black", pch = 21) +
   coord_fixed() +
   map_theme + theme(plot.title = element_blank()) +
-  guides(size="none", fill = guide_legend(title = "Maximum\n(95th percentile)\nfruit width [cm]",  
-                                          override.aes = list(size = size_v))) +
+  guides(size="none", fill = guide_legend(title = "Maximum\n(95th percentile)\nfruit width [cm]", override.aes = list(size = size_v))) +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(expand = c(0,0)) +
-  scale_size_manual(values =size_v) +
-  scale_color_manual(values = my_colors, aesthetics = c("colour", "fill"))+
-  #                   breaks = levels(tdwg_maxFW$maxFS_q), labels = levels(tdwg_maxFW$maxFS_q)) +
-  theme(legend.position = "right", text = element_text(size = 13), legend.title = element_text(size = 13), legend.text = element_text(size = 13))
+  scale_size_manual(values = size_v, drop=F)+
+  scale_color_manual(values = my_colors,
+                     aesthetics = c("colour", "fill"), drop=F)+
+  theme(legend.position = "right",
+        text = element_text(size = 13),
+        legend.title = element_text(size = 13),
+        legend.text = element_text(size = 13)) 
 
 maxFW_angios_p
 ggsave(file.path(fig.dir, "3_palms_maxFW_angios_p.pdf"), maxFW_angios_p, width = 8, height = 4)
 
+
+### Original scale:
+
+### Original Scale:
+target.col <- c("LAT", "LONG", "LEVEL_3_CO", "max95FW_angios")
+tdwg_maxFW <- melt(dd[,target.col], id.vars = c("LAT", "LONG", "LEVEL_3_CO"), measure.vars = "max95FW_angios", na.rm=T)
+q_probs = seq(0.0, 1.0, 0.125)
+q_values = as.numeric(quantile(tdwg_maxFW$value, probs = q_probs, na.rm = T, type = 8))
+max_q_mdpt <- vector()
+for(i in 1:(length(q_values)-1)){ max_q_mdpt[i] <- (q_values[i] + q_values[i+1])/2 }
+tdwg_maxFW$maxFW_q <- cut(tdwg_maxFW$value, q_values, include.lowest = T)
+levels(tdwg_maxFW$maxFW_q) <- gsub(levels(tdwg_maxFW$maxFW_q), pattern = ",", replacement = " - ")
+levels(tdwg_maxFW$maxFW_q) <- gsub(levels(tdwg_maxFW$maxFW_q), pattern = "\\(|\\[|\\]", replacement = "")
+
+
+maxFW_p <- ggplot() +
+  geom_polygon(aes(y = lat, x = long, group = group), fill = "grey80", size = 0.1, colour = "white",
+               data = shp.df2) +
+  geom_point(aes(x = LONG, y = LAT,
+                 fill = maxFW_q, size = maxFW_q),
+             data =tdwg_maxFW, alpha = 0.9,  pch = 21, colour = "black") +
+  coord_fixed() +
+  map_theme + theme(plot.title = element_blank()) +
+  guides(size="none", fill = guide_legend(title = "Maximum\n(95th percentile)\nfruit width [cm]",
+                                          override.aes = list(size = seq(1,3, length.out = 8)))) +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_size_manual(values = seq(1,3, length.out = 8))+
+  scale_color_manual(values = my_colors, aesthetics = c("colour", "fill"))+
+  #scale_fill_viridis(discrete = TRUE) +
+  #scale_color_viridis(discrete = TRUE) +
+  theme(legend.position = "right",
+        text = element_text(size = 13),
+        legend.title = element_text(size = 13),
+        legend.text = element_text(size = 13)) 
+
+maxFW_p
+ggsave(file.path(fig.dir, "3_palms_maxFW_p_originalscale.pdf"), maxFW_p, width = 8, height = 4)
 
 ### 1.1d Mean Body size change =========
 
@@ -901,6 +981,22 @@ cols <- c("#636363", "blue")
 
 
 # 1) Full model: (w/o interactions)
+#### new ==========
+lm_full1 <- lm(normalized(sqrt(exp(log_max95FL_palms_BBM_MCC))) ~ factor(accAfrica)*
+                 normalized(sqrt(CH_Mean)) +
+                 normalized((sqrt_change)) +
+                 normalized(sqrt(curr_max95BodySize)) +
+                 normalized(I(MAT^2)) +
+                 normalized(sqrt(TempSeas)) +
+                 normalized(sqrt(AnnualPrec)) +
+                 normalized(sqrt(PrecSeas)),
+               data = full_df, na.action = na.exclude)
+summary(lm_full1)
+
+#####
+
+
+
 
 lm_full1 <- lm(normalized(sqrt(max95FL_palms)) ~ factor(accAfrica)+ 
                  normalized((sqrt_change)) + 
@@ -1010,7 +1106,7 @@ compare_performance(lm_full1b, lm_full2b, rank = TRUE, metrics = "common")
 
 cols <- c("#636363", "blue")
 pdf(file=paste0(fig.dir, "Simulated_Effecs_lms.pdf"), width = 6, height = 4)
-pLMsim <- plot_model(lm_full2b, 
+pLMsim <- plot_model(lm_full1, 
                   colors = c("#440154FF","#21908CFF"), 
                   type= "est", 
                   show.intercept = F, 
@@ -1018,11 +1114,11 @@ pLMsim <- plot_model(lm_full2b,
                   value.offset = .3,
                   show.p = T, 
                   vline.color = "grey", 
-                  order.terms = c(3, 1,2, 10, 9, 4, 5, 6, 7, 8),
+                  #order.terms = c(3, 1,2, 10, 9, 4, 5, 6, 7, 8),
+                  terms = c("normalized(sqrt(curr_max95BodySize))", "normalized(I(MAT^2))"),
                   title = "",
-                  axis.labels=c("Canopy Height", "Precipitation Seasonality", "Annual Precipitation", "Temperature Seasonality", "Mean annual temperature", 
-                                "Body mass decrease * Africa", "Current body mass * Africa", 
-                                "Distribution in Africa", "Body mass decrease", "Current body mass")) + theme_classic() +   theme(text=element_text(size=13, color = "black"), #change font size of all text
+                  axis.labels=c( "Mean annual temperature", 
+                                 "Current body mass")) + theme_classic() +   theme(text=element_text(size=13, color = "black"), #change font size of all text
                                                                                                                                   axis.text=element_text(size=13), #change font size of axis text
                                                                                                                                   axis.title=element_text(size=13)) 
 pLMsim <- pLMsim +  theme(axis.text=element_text(size=11.5, color = "black"), #change font size of axis text
