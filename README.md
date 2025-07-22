@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/530601080.svg)](https://doi.org/10.5281/zenodo.16311862)
 # Fruits Africa
 
 Find below file descriptions and workflows to reproduce the study. For running the OUwie models, we relied on the HPC Cluster from UFZ and worked with SLURM scheduler. The R scripts can be run on a local machine as well, some adaptations are necessary to read in the data (in our analyses this was set up in the submit scripts that accompanied the R script).
